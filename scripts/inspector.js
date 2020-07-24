@@ -262,17 +262,16 @@ var inspector={
 			view.objects[this.selected[0]].h=old.h;
 			
 			
-			
-			jt.rect(jt.pX(80)+1,jt.pY(15),jt.pX(20)-2,jt.pY(6)-1,"white")
+			jt.rect(jt.pX(80)+1,jt.pY(15),jt.pX(20)-2,jt.pY(6)-1,cBg)
 			jt.font("Consolas",app.fontSize);
 			jt.text("Inspector",jt.pX(100-20+0.5),jt.pY(15.5),cText,"left");
-			jt.rect(jt.pX(80)+1,jt.pY(41)+1,jt.pX(20)-2,jt.pY(59)-2,"white")
+			jt.rect(jt.pX(80)+1,jt.pY(41)+1,jt.pX(20)-2,jt.pY(59)-2,cBg)
 			
 			
 			
 			//draw labels
 			jt.font("Consolas",app.fontSize*0.75);
-			jt.text("Name: ",jt.pX(84),jt.pY(18),"black","right");
+			jt.text("Name: ",jt.pX(84),jt.pY(18),cText,"right");
 			if(this.taken>0){
 				this.taken--;
 				if(this.taken<this.takenMax/2){
