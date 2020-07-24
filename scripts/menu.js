@@ -1537,7 +1537,7 @@ var menu={
 			jt.rect(jt.pX(18.5),jt.pY(5),jt.pX(0.1),jt.pY(8))
 			jt.font("Consolas",app.fontSize*0.75);
 			jt.text("Main: ",jt.pX(0.5),jt.pY(5),cText,"left");
-			jt.text("(v"+app.version+")",jt.pX(0.5),jt.pY(8),cText,"left");
+			
 			jt.text("Title: ",jt.pX(8),jt.pY(5),cText,"right");
 			jt.text("Width: ",jt.pX(8),jt.pY(8),cText,"right");
 			jt.text("Height: ",jt.pX(16),jt.pY(8),cText,"right");
@@ -1546,6 +1546,13 @@ var menu={
 			
 			jt.text("Import: ",jt.pX(23),jt.pY(5),cText,"right");
 			jt.text("(Import all assets before the game)",jt.pX(23),jt.pY(5),cText,"left");
+			
+			//version
+			jt.rect(jt.pX(50),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
+			jt.text("Version "+app.version,jt.pX(56),jt.pY(5),cText,"right");
+			for(var i=0;i<app.changes.length;i++){
+				jt.text("-"+app.changes[i],jt.pX(51),jt.pY(7+(2*i)),cText,"left")
+			}
 			
 			//options
 			jt.rect(jt.pX(65),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
