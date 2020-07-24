@@ -38,8 +38,8 @@ var view={
 	copyOffsetFirst:0,
 	copyOffset:0,
 	
-	actions:{},
-	actionsCurr:{},
+	actions:{"":[],},
+	actionsCurr:{"":0,},
 	
 	objects:[],
 	buttons:[],
@@ -893,7 +893,11 @@ var view={
 					data.i=this.copyArr[i].i;
 					if(data.i==-1){data.i=objectsView-1;objectsView++;}
 					
-					data.attr=JSON.parse(JSON.stringify(this.copyArr[i].attr));
+					if(this.copyArr[i].attr==undefined){
+						data.attr=undefined;
+					}else{
+						data.attr=JSON.parse(JSON.stringify(this.copyArr[i].attr));
+					}
 					data.c=this.copyArr[i].c;
 					data.alpha=this.copyArr[i].alpha;
 					data.r=this.copyArr[i].r;
