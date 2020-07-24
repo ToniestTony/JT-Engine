@@ -74,6 +74,8 @@ var menu={
 		this.buttons.push(new Button(jt.pX(8),jt.pY(11),jt.pX(2),jt.pY(2),"maximize",true,"No","Settings"));
 		this.buttons.push(new Button(jt.pX(23),jt.pY(8),jt.pX(13),jt.pY(2),"importGame",false,"Import game from clipboard","Settings"));
 		
+		this.buttons.push(new Button(jt.pX(72),jt.pY(5),jt.pX(10),jt.pY(2),"switchViews",false,"Switch views","Settings"));
+		
 		//this.buttons.push(new Button(jt.pX(86),jt.pY(5),jt.pX(13),jt.pY(2),"macro",true,"Show macro","Settings"));
 		//this.buttons.push(new Button(jt.pX(86),jt.pY(5),jt.pX(13),jt.pY(2),"removeComments",false,"Remove comments","Settings"));
 		this.buttons.push(new Button(jt.pX(86),jt.pY(5),jt.pX(13),jt.pY(2),"dark",true,"Dark theme","Settings"));
@@ -780,7 +782,20 @@ var menu={
 								jt.stop(this.uploadsAudio[j].name);
 							}
 							
+						//OPERATIONS
+						}else if(this.buttons[i].action=="switchViews"){
+							var view1=prompt("Change objects from view:")
+							var view2=prompt("Change objects to view:")
 							
+							if((views.views.indexOf(view1)!=-1 || view1=="") && (views.views.indexOf(view2)!=-1 || view2=="")){
+								for(var j=0;j<view.objects.length;j++){
+									if(view.objects[j].view==view1){
+										view.objects[j].view=view2;
+									}
+								}
+								
+								views.updateButtons=true;
+							}
 						//MISC
 						}else if(this.buttons[i].action=="maximize"){
 							this.maximize=true;
@@ -1531,6 +1546,9 @@ var menu={
 			jt.text("Import: ",jt.pX(23),jt.pY(5),cText,"right");
 			jt.text("(Import all assets before the game)",jt.pX(23),jt.pY(5),cText,"left");
 			
+			//options
+			jt.rect(jt.pX(65),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
+			jt.text("Operations: ",jt.pX(72),jt.pY(5),cText,"right");
 			
 			//Misc
 			jt.rect(jt.pX(82.5),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
