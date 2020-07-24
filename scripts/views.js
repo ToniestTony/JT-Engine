@@ -156,16 +156,17 @@ var views={
 	draw:function(){
 		this.views.push("");
 		var cBg="lightgrey";
+		var cBg2="white"
 		var cText="black";
-		if(app.dark){cBg="#444";cText="white"}
+		if(app.dark){cBg="#444";cText="white";cBg2="black"}
 		jt.font("Consolas",app.fontSize);
 		jt.rect(0,jt.pY(15),jt.pX(20),jt.pY(85),cBg,0);
 		jt.font("Consolas",app.fontSize*0.75);
 		
 		var currOffset=this.offset;
 		for(var i=0;i<this.views.length;i++){
-			jt.rect(jt.pX(1),jt.pY(18)+(jt.pY(4)*i)+currOffset,jt.pX(17),jt.pY(2),"white");
-			jt.rect(jt.pX(2.5),jt.pY(18)+(jt.pY(4)*i)+currOffset,jt.pX(0.1),jt.pY(2),"black");
+			jt.rect(jt.pX(1),jt.pY(18)+(jt.pY(4)*i)+currOffset,jt.pX(17),jt.pY(2),cBg2);
+			jt.rect(jt.pX(2.5),jt.pY(18)+(jt.pY(4)*i)+currOffset,jt.pX(0.1),jt.pY(2),cText);
 			var str="+";
 			if(this.viewsOpened[i]){
 				str="-";
@@ -197,11 +198,14 @@ var views={
 						}
 					}
 					var bgRect="white";
+					if(app.dark){bgRect="black"}
 					if(view.objectHasScript(list[j])){
 						bgRect="lightgreen";
+						if(app.dark){bgRect="darkgreen"}
 					}
 					if(inspector.selected.indexOf(list[j])!=-1){
 						bgRect="lightblue";
+						if(app.dark){bgRect="darkblue"}
 					}
 					jt.rect(jt.pX(2.5),jt.pY(18)+(jt.pY(4)*i)+currOffset+objOffset,jt.pX(15.5),jt.pY(2),bgRect);
 					jt.text("("+type+")"+view.objects[list[j]].name,jt.pX(4),jt.pY(18.25)+(jt.pY(4)*i)+currOffset+objOffset,cText,"left")
