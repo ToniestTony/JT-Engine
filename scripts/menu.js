@@ -1549,7 +1549,7 @@ var menu={
 			
 			//version
 			jt.rect(jt.pX(50),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
-			jt.text("Version "+app.version,jt.pX(56),jt.pY(5),cText,"right");
+			jt.text("Version: "+app.version,jt.pX(51),jt.pY(5),cText,"left");
 			for(var i=0;i<app.changes.length;i++){
 				jt.text("-"+app.changes[i],jt.pX(51),jt.pY(7+(2*i)),cText,"left")
 			}
