@@ -65,6 +65,7 @@ function openFile(e){
 
 var app={
 	version:"1.0",
+	changes:["Dark theme works","Switch views","Bug fixes"],
 	w:0,
 	h:0,
 	fps:60,
