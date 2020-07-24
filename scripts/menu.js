@@ -1537,6 +1537,7 @@ var menu={
 			jt.rect(jt.pX(18.5),jt.pY(5),jt.pX(0.1),jt.pY(8))
 			jt.font("Consolas",app.fontSize*0.75);
 			jt.text("Main: ",jt.pX(0.5),jt.pY(5),cText,"left");
+			jt.text("(v"+app.version+")",jt.pX(0.5),jt.pY(8),cText,"left");
 			jt.text("Title: ",jt.pX(8),jt.pY(5),cText,"right");
 			jt.text("Width: ",jt.pX(8),jt.pY(8),cText,"right");
 			jt.text("Height: ",jt.pX(16),jt.pY(8),cText,"right");
