@@ -16,12 +16,12 @@ function Object(x,y,w,h,c,r,attr,cam,v,tags){
 	
 	this.selected=false;
 	this.selectedOnce=false;
-	this.code=["/*You can put functions here*/",""];
+	this.code=["/*Attributes and methods go here*/",""];
 	this.setup=["\t/*Setup runs once when the game starts*/","\t"];
 	this.update=["\t/*Update runs at the fps specified*/","\t","\tjte.draw(this);"];
 }
 
-var defaultCode=["/*You can put functions here*/",""];
+var defaultCode=["/*Attributes and methods go here*/",""];
 var defaultSetup=["\t/*Setup runs once when the game starts*/","\t"];
 var defaultUpdate=["\t/*Update runs at the fps specified*/","\t","\tjte.draw(this);"];
 
@@ -77,7 +77,7 @@ var app={
 	game:undefined,
 	gameLoaded:false,
 	dark:false,
-	pR:window.devicePixelRatio,//window.devicePixelRatio
+	pR:1,//window.devicePixelRatio
 	//setup is called when the game has finished loading
 	setup:function(){
 		
