@@ -840,7 +840,7 @@ var view={
 					data.w=this.objects[selectObj[i].i].w;
 					data.h=this.objects[selectObj[i].i].h;
 					data.i=selectObj[i].i;
-					if(!jt.kPress("x")){data.i=-1;}
+					//if(!jt.kPress("x")){data.i=-1;}
 					data.attr=this.objects[selectObj[i].i].attr;
 					data.c=this.objects[selectObj[i].i].c;
 					data.alpha=this.objects[selectObj[i].i].alpha;
@@ -883,6 +883,8 @@ var view={
 				var objectsView=1;
 				for(var i=0;i<this.objects.length;i++){objectsView++;}
 				
+				var cpt=1
+				
 				for(var i=0;i<this.copyArr.length;i++){
 					var data={x:0,y:0,w:0,h:0,i:0,c:0,cam:true,view:this.view}
 					data.x=this.copyArr[i].x+this.copyOffset;
@@ -890,7 +892,10 @@ var view={
 					data.w=this.copyArr[i].w;
 					data.h=this.copyArr[i].h;
 					
-					data.i=this.copyArr[i].i;
+					
+					data.i=(this.copyArr[i].i+cpt);
+					cpt++;
+					
 					if(data.i==-1){data.i=objectsView-1;objectsView++;}
 					
 					if(this.copyArr[i].attr==undefined){
