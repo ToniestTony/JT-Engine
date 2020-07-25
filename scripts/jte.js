@@ -77,7 +77,7 @@ var fullPage=[`<html>
 		
 		code:"",
 		
-		pR:window.devicePixelRatio,
+		pR:1,
 		
 		initialize:function(){
 			`,`
