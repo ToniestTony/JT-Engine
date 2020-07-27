@@ -10,6 +10,7 @@ var menu={
 	buttonCSelected:"blue",
 	buttonCBg:"grey",
 	
+	name:"",
 	fields:[],
 	writing:-1,
 	writingFrame:0,
@@ -120,9 +121,10 @@ var menu={
 		
 		this.buttons.push(new Button(jt.pX(1),jt.pY(5),jt.pX(10),jt.pY(8),"playTab",false,"Open game in tab","Play"));
 		this.buttons.push(new Button(jt.pX(12),jt.pY(5),jt.pX(10),jt.pY(8),"playWindow",false,"Open game in window","Play"));
-		this.buttons.push(new Button(jt.pX(23),jt.pY(5),jt.pX(10),jt.pY(8),"playDownload",false,"Download game (HTML)","Play","s","ctrl"));
-		this.buttons.push(new Button(jt.pX(34),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadScript",false,"Download game (JS)","Play"));
-		this.buttons.push(new Button(jt.pX(45),jt.pY(5),jt.pX(10),jt.pY(8),"playLib",false,"Download JT library","Play"));
+		this.buttons.push(new Button(jt.pX(23),jt.pY(5),jt.pX(10),jt.pY(8),"playDownload",false,"Download game (HTML)","Play"));
+		this.buttons.push(new Button(jt.pX(34),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadCode",false,"Download code (HTML)","Play","s","ctrl"));
+		this.buttons.push(new Button(jt.pX(45),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadScript",false,"Download game (JS)","Play"));
+		this.buttons.push(new Button(jt.pX(56),jt.pY(5),jt.pX(10),jt.pY(8),"playLib",false,"Download JT library","Play"));
 		
 		this.grad=jt.canvas.ctx.createLinearGradient(0,jt.pY(5),0,jt.pY(9+5));
 		this.grad.addColorStop(0, 'rgba(255, 0, 0, 1)');
@@ -218,7 +220,6 @@ var menu={
 		if(evt.target.readyState==FileReader.DONE){
 			var name=file.name.replace(/\.[^/.]+$/, "");
 			jt.assets.sound(evt.target.result,name,menu.repeat);
-			console.log(evt.target)
 			menu.uploadsAudio.push({type:"audio",
 			path:evt.target.result,
 			name:name,
@@ -305,9 +306,26 @@ var menu={
 
 		
 	},
-	downloadGame:function(script){
+	downloadGame:function(isScript,onlyCode){
+		var script=false;
+		if(isScript!=undefined){
+			if(isScript==true){
+				script=true;
+			}
+		}
 		
+		var only=false;
+		if(onlyCode!=undefined){
+			if(onlyCode==true){
+				only=true;
+			}
+		}
 		
+		if(only){
+			menu.name=menu.fields[0].text+" (quick)";
+		}else{
+			menu.name=menu.fields[0].text;
+		}
 		
 		var code=this.getCode();
 		var assets=``;
@@ -333,7 +351,7 @@ var menu={
 		
 		if(code==""){code=`undefined`;}
 		var title=document.title.substr(0,document.title.length-6);
-		if(script!=undefined){
+		if(script){
 			var text=fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+code+fullPage[7]+assets+fullPage[8];
 		}else{
 			var text=fullPage[0]+fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+code+fullPage[7]+assets+fullPage[8]+fullPage[9];
@@ -341,7 +359,7 @@ var menu={
 		
 		var zip=new JSZip();
 		
-		if(script!=undefined){
+		if(script){
 			zip.file("index.js",text);
 		}else{
 			zip.file("index.html",text);
@@ -353,16 +371,18 @@ var menu={
 		var list = [];
 		var files = ['jt_lib14.js','jquery.js'];
 		var assets = [];
-		for(var i=0;i<this.uploadsImage.length;i++){
-			assets.push("assets/"+this.uploadsImage[i].name+".png")
-		}
-		
-		for(var i=0;i<this.uploadsAudio.length;i++){
-			assets.push("assets/"+this.uploadsAudio[i].name+".wav")
-		}
-		
-		for(var i=0;i<this.uploadsAnim.length;i++){
-			assets.push("assets/"+this.uploadsAnim[i].name+".png")
+		if(!only){
+			for(var i=0;i<this.uploadsImage.length;i++){
+				assets.push("assets/"+this.uploadsImage[i].name+".png")
+			}
+			
+			for(var i=0;i<this.uploadsAudio.length;i++){
+				assets.push("assets/"+this.uploadsAudio[i].name+".wav")
+			}
+			
+			for(var i=0;i<this.uploadsAnim.length;i++){
+				assets.push("assets/"+this.uploadsAnim[i].name+".png")
+			}
 		}
 		var results = [];
 
@@ -392,7 +412,7 @@ var menu={
 				 var blob = new Blob([content], {
 					type: "data:application/zip;blob"
 				  });
-				  saveAs(blob, menu.fields[0].text+".zip");
+				  saveAs(blob, menu.name+".zip");
 				//window.location = "data:application/zip;base64," + base64;
 			});
 		  });
@@ -957,6 +977,8 @@ var menu={
 							this.openGame("window")
 						}else if(this.buttons[i].action=="playDownload"){
 							this.downloadGame();
+						}else if(this.buttons[i].action=="playDownloadCode"){
+							this.downloadGame(false,true);
 						}else if(this.buttons[i].action=="playDownloadScript"){
 							this.downloadGame(true);
 						}else if(this.buttons[i].action=="playLib"){
@@ -1557,7 +1579,7 @@ var menu={
 			jt.rect(jt.pX(50),jt.pY(5),jt.pX(0.1),jt.pY(8),cText)
 			jt.text("Version: "+app.version,jt.pX(51),jt.pY(5),cText,"left");
 			for(var i=0;i<app.changes.length;i++){
-				jt.text("-"+app.changes[i],jt.pX(51),jt.pY(7+(2*i)),cText,"left")
+				jt.text(app.changes[i],jt.pX(51),jt.pY(7+(2*i)),cText,"left")
 			}
 			
 			//options
