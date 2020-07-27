@@ -288,3 +288,12 @@ window.onload = function(){
 	//jt.loadSound("sound.wav","name")
 	//jt.loadAnim("src.png","name",number of frames,fps);
 }
+
+//remove editor if exiting page
+window.onbeforeunload=function(e){
+	if(app.editor!=undefined){
+		app.editor.close();
+	}
+	
+	return null;
+}
