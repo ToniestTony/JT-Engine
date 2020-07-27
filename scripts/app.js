@@ -65,7 +65,7 @@ function openFile(e){
 
 var app={
 	version:"1.1",
-	changes:["Resolution fix","Pasted objects are in order","Fix code duplication","Fix views buttons"],
+	changes:["-Added quick save (No assets)","-Pasted objects are in order","-Fix editor, resolution and"," views"],
 	w:0,
 	h:0,
 	fps:60,
