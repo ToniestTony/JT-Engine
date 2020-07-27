@@ -1135,29 +1135,33 @@ var menu={
 											}
 												
 										}else if(field=="insOrder"){
-											//change order
-											var num=parseFloat(text);
-											if(isNaN(num)){
-												num=0;
-											}
-											if(num<0){num=0;}
-											if(num>view.objects.length-1){num=view.objects.length-1;}
-											
-											if(num==inspector.selected[0]){
-												view.objects[inspector.selected[0]].order=inspector.selected[0];
-											}else{
-												var copy=JSON.parse(JSON.stringify(view.objects[inspector.selected[0]]));
-												if(num==view.objects.length-1){
-													view.objects.push(copy);
+											if(app.editor==undefined){
+												//change order only if editor is closed
+												var num=parseFloat(text);
+												if(isNaN(num)){
+													num=0;
+												}
+												if(num<0){num=0;}
+												if(num>view.objects.length-1){num=view.objects.length-1;}
+												
+												if(num==inspector.selected[0]){
+													view.objects[inspector.selected[0]].order=inspector.selected[0];
 												}else{
-													view.objects.splice(num,0,copy);
-												}
+													var copy=JSON.parse(JSON.stringify(view.objects[inspector.selected[0]]));
+													if(num==view.objects.length-1){
+														view.objects.push(copy);
+													}else{
+														view.objects.splice(num,0,copy);
+													}
 
-												if(num<inspector.selected[0]){
-													inspector.selected[0]++;
+													if(num<inspector.selected[0]){
+														inspector.selected[0]++;
+													}
+													view.objects.splice(inspector.selected[0],1);
+													inspector.selected[0]=num;
 												}
-												view.objects.splice(inspector.selected[0],1);
-												inspector.selected[0]=num;
+											}else{
+												inspector.closeEditor=inspector.closeEditorMax;
 											}
 												
 										}else if(field=="insTags"){
@@ -1475,7 +1479,7 @@ var menu={
 					var text=this.buttons[i].text
 					//changing text
 					if(this.buttons[i].action=="insEditor"){
-						if(app.editor){text="Close code editor"}
+						if(app.editor!=undefined){text="Close code editor"}
 					}
 					if(this.buttons[i].action=="insCam"){
 						if(inspector.selected.length==1){
