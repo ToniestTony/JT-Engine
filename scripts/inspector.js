@@ -3,6 +3,8 @@ var inspector={
 	selected:[],
 	taken:0,
 	takenMax:120,
+	closeEditor:0,
+	closeEditorMax:120,
 	nameError:"",
 	fields:{
 		insName:0,
@@ -280,6 +282,17 @@ var inspector={
 					jt.alpha(1);
 				}else{
 					jt.text("Name is "+this.nameError,jt.pX(90),jt.pY(16.5),"red","center");
+				}
+			}
+			
+			if(this.closeEditor>0){
+				this.closeEditor--;
+				if(this.closeEditor<this.closeEditorMax/2){
+					jt.alpha(this.closeEditor/(this.closeEditorMax/2));
+					jt.text("Close code editor",jt.pX(84),jt.pY(58.5),"red","left");
+					jt.alpha(1);
+				}else{
+					jt.text("Close code editor",jt.pX(84),jt.pY(58.5),"red","left");
 				}
 			}
 			
