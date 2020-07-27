@@ -65,7 +65,7 @@ function openFile(e){
 
 var app={
 	version:"1.1",
-	changes:["Resolution fix","Pasted objects are in order","Editor closes with app","Fix code duplication"],
+	changes:["Resolution fix","Pasted objects are in order","Fix code duplication","Fix views buttons"],
 	w:0,
 	h:0,
 	fps:60,
