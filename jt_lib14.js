@@ -334,6 +334,12 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             context=this;
             this.interval=self.setInterval(function(){context.mainLoop()},1000/this.fps,context)
         },
+		//change the main loop
+        changeLoop: function(){
+            context=this;
+            clearInterval(this.interval)
+            this.interval=self.setInterval(function(){context.mainLoop()},1000/this.fps,context)
+        },
         mainLoop:function(){
             
             //if jt.stop==true, remove the setInterval
