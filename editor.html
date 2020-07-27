@@ -6,6 +6,9 @@
 		div.CodeMirror{
 			height:90%;
 		}
+		.cm-container .CodeMirror {
+		  height: auto;
+		}
 		#editor span.readOnly{
 			color:#AAA;
 			background-color:black;
@@ -70,6 +73,7 @@
 	  theme:"monokai",
 	  autohint:true,
 	  tabSize:2,
+	  viewportMargin:Infinity,
 	  keyMap:{
 		"Ctrl-D":function(cm){
 			var current_cursor = cm.doc.getCursor();
