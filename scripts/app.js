@@ -64,8 +64,8 @@ function openFile(e){
 }
 
 var app={
-	version:"1.0",
-	changes:["Dark theme works","Switch views","Bug fixes"],
+	version:"1.1",
+	changes:["Resolution fix","Pasted objects are in order","Editor closes with app","Fix code duplication"],
 	w:0,
 	h:0,
 	fps:60,
