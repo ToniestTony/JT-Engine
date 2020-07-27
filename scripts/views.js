@@ -14,7 +14,7 @@ var views={
 	},
 	update:function(){
 		this.views.push("");
-		if(jt.mX()<jt.pX(20)){
+		if(jt.mX()<jt.pX(20) && jt.mY()>jt.pY(15)){
 			if(jt.mS()<0){
 				this.updateButtons=true;
 				this.offset+=jt.pY(2);
@@ -31,7 +31,7 @@ var views={
 			var m={x:jt.mX(),y:jt.mY(),w:2,h:2}; 
 			var v={x:jt.pX(1),y:jt.pY(18)+(jt.pY(4)*i)+currOffset,w:jt.pX(1.5),h:jt.pY(2)};
 			if(jt.cRect(m,v)){
-				if(jt.mPress()){
+				if(jt.mPress() && jt.mY()>jt.pY(15)){
 					this.viewsOpened[i]=!this.viewsOpened[i];
 					this.updateButtons=true;
 				}
@@ -52,7 +52,7 @@ var views={
 					currOffset+=jt.pY(2);
 					
 					var obj={x:jt.pX(2.5),y:jt.pY(18)+(jt.pY(4)*i)+currOffset,w:jt.pX(15.5),h:jt.pY(2)}
-					if(jt.kCheck("shift") && jt.mPress(obj.x,jt.pY(18)+(jt.pY(4)*i)+jt.pY(2),obj.w,totalHeight)){
+					if(jt.kCheck("shift") && jt.mPress(obj.x,jt.pY(18)+(jt.pY(4)*i)+jt.pY(2),obj.w,totalHeight) && jt.mY()>jt.pY(15)){
 						var allSelected=true;
 						for(var k=0;k<list.length;k++){
 							if(!view.objects[list[k]].selected){
@@ -83,7 +83,7 @@ var views={
 						}
 					}
 					
-					if(jt.mPress(obj.x,obj.y,obj.w,obj.h) && !jt.kCheck("shift")){
+					if(jt.mPress(obj.x,obj.y,obj.w,obj.h) && jt.mY()>jt.pY(15) && !jt.kCheck("shift")){
 						
 						if(this.views[i]!=view.view){
 							//open
