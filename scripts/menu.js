@@ -880,7 +880,7 @@ var menu={
 							}
 							
 						//VIEWS
-						}else if(this.buttons[i].action.substr(0,8)=="viewsAdd"){
+						}else if(this.buttons[i].action.substr(0,8)=="viewsAdd" && jt.mY()>jt.pY(15)){
 							var num=parseInt(this.buttons[i].action.substr(8,9));
 							var name="View"+views.views.length;
 							var index=0;
@@ -893,7 +893,7 @@ var menu={
 							views.updateButtons=true;
 							view.actions[name]=[];
 							view.actionsCurr[name]=-1;
-						}else if(this.buttons[i].action.substr(0,8)=="viewsDel"){
+						}else if(this.buttons[i].action.substr(0,8)=="viewsDel" && jt.mY()>jt.pY(15)){
 							
 								var num=parseInt(this.buttons[i].action.substr(8,9));
 								var name=views.views[num];
@@ -918,7 +918,7 @@ var menu={
 								}
 							}
 							
-						}else if(this.buttons[i].action.substr(0,9)=="viewsOpen"){
+						}else if(this.buttons[i].action.substr(0,9)=="viewsOpen" && jt.mY()>jt.pY(15)){
 							var num=parseInt(this.buttons[i].action.substr(9,9));
 							if(view.tabs.indexOf(views.views[num])==-1){
 								view.addTab(views.views[num]);
@@ -984,7 +984,9 @@ var menu={
 						if(this.fields[i].id.substring(0,3)=="ins"){
 							if(inspector.selected.length!=1){valid=false;}
 						}
-						
+						if(this.fields[i].id.substring(0,5)=="views"){
+							if(jt.mY()<=jt.pY(15)){valid=false;}
+						}
 						if(valid){
 							//writing to this fields
 							this.writing=i;
