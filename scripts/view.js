@@ -1266,9 +1266,9 @@ var view={
 				}
 				
 				jt.font(font,fS);
-				var w=jt.textW(t)/fS;
-				var w1=jt.textW(".")/fS;
-				var h=jt.textH(t)/fS;
+				var w=jt.textW(t)/ratioCam;
+				var w1=jt.textW(".")/ratioCam;
+				var h=jt.textH(t)/ratioCam;
 				if((w<=obj.w && h<=obj.h) || alwaysShow){
 					jt.text(t,obj.x+offset,obj.y,c,align,fS,r);
 				}else{
