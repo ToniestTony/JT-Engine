@@ -1018,10 +1018,20 @@ var menu={
 							//choose character
 							var w=jt.textW("a");
 							var c=-1;
+							var h=jt.pY(2);
+							
+							var hMult=(Math.floor(obj.h/jt.pY(2)));
+							var maxChars=Math.floor(obj.w/jt.textW("a"))*hMult;
+							
 							for(var x=0;x<this.fields[i].text.length+1;x++){
 								var pos=((x*w)+obj.x)-w/2
 								if(jt.mX()>=pos && jt.mX()<pos+w){c=x}
 							}
+							
+							var y=Math.floor((jt.mY()-obj.y)/h);
+							c+=y*(maxChars/hMult)
+							if(c>this.fields[i].text.length){c=this.fields[i].text.length}
+							
 							if(c!=-1){
 								this.fields[i].cursor=c;
 							}
@@ -1251,7 +1261,8 @@ var menu={
 			var specials=["backspace","left","right","up","down","enter"];
 			for(var i=0;i<keys.length;i++){
 				if(jt.kPress(keys[i])){
-					var maxChars=Math.floor(this.fields[this.writing].w/jt.textW("a"));
+					var hMult=(Math.floor(this.fields[this.writing].h/jt.pY(2)));
+					var maxChars=Math.floor(this.fields[this.writing].w/jt.textW("a"))*hMult;
 					var removeWriting=false;
 					if(specials.indexOf(keys[i])!=-1){
 						//specials
@@ -1352,6 +1363,7 @@ var menu={
 							this.fields[this.writing].cursor=this.fields[this.writing].text.length;
 						}
 					}
+					
 					this.fields[this.writing].text=this.fields[this.writing].text.substr(0,maxChars);
 					if(removeWriting){this.writing=-1;break;}
 				}
@@ -1545,16 +1557,71 @@ var menu={
 					show=false;
 				}
 				if(show){
-					var obj={x:menu.fields[i].x,y:menu.fields[i].y,w:menu.fields[i].w,h:menu.fields[i].h,c:menu.fields[i].c,text:menu.fields[i].text};
+					var obj={x:menu.fields[i].x,y:menu.fields[i].y,w:menu.fields[i].w,h:menu.fields[i].h,c:menu.fields[i].c,text:menu.fields[i].text,attr:{text:menu.fields[i].text}};
 					jt.baseline("top");
 					var c="grey";
 					var cBg="black"
 					if(app.dark){c="black";cBg="grey"}
 					if(i==menu.writing){cBg="black";if(app.dark){cBg="white"}}
+					
 					jt.rectB(obj.x-1,obj.y-1,obj.w+2,obj.h+2,cBg,0,2);
-					jt.text(obj.text,obj.x+2,obj.y+2,cText,"left");
+					//jt.text(obj.text,obj.x+2,obj.y+2,cText,"left");
+					//draw text
+					var ratioCam=((jt.w()+jt.h())/2)/((jt.cam().w+jt.cam().h)/2);
+					var w=jt.textW(obj.text)/ratioCam;
+					var w1=jt.textW(".")/ratioCam;
+					var h=jt.textH(obj.text)/ratioCam;
+					if(w<=obj.w && h<=obj.h){
+						jt.text(obj.text,obj.x+2,obj.y+2,cText,"left");
+					}else{
+						if(h>obj.h){
+							//too small
+						}else{
+							if(w>obj.w){
+								if(w1>obj.w){
+									//too small
+								}else{
+									//line breaks
+									var maxLen=1;
+									for(var j=1;j<obj.text.length;j++){
+										if(w1*j>obj.w){
+											break;
+										}else{
+											maxLen=j;
+										}
+									}
+									var numLines=Math.ceil(obj.text.length/maxLen);
+									var maxLines=1;
+									for(var j=1;j<=numLines;j++){
+										if(h*j>obj.h){
+											break;
+										}else{
+											maxLines=j;
+										}
+									}
+									//draw all lines
+									for(var j=0;j<maxLines;j++){
+										var str=obj.text.substr(j*maxLen,maxLen);
+										jt.text(str,obj.x+2,obj.y+(jt.pY(2)*j)+2,cText,"left");
+									}
+								}
+							}
+						}
+					}
+					var hMult=(Math.floor(obj.h/jt.pY(2)));
+					var maxChars=Math.floor(obj.w/jt.textW("a"))*hMult;
+					
+					var x=((menu.fields[i].cursor*jt.textW("a"))%(obj.w-w1));
+					
+					var y=Math.floor((menu.fields[i].cursor*jt.textW("a"))/(obj.w-w1));
+					
+					if(menu.fields[i].cursor==maxChars){
+						x=maxChars/hMult*jt.textW("a");
+						y--;
+					}
+					
 					if(i==menu.writing && menu.writingFrame<=40){
-						jt.rect(obj.x+(menu.fields[i].cursor*jt.textW("a"))+1,obj.y+2,1.5,obj.h-4,cBg)
+						jt.rect(obj.x+x+1,obj.y+2+(y*jt.pY(2)),1.5,jt.pY(2)-4,cBg)
 					}
 				}
 			}
