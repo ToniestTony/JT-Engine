@@ -301,8 +301,10 @@ var fullPage=[`<html>
 						if(obj.attr.alwaysShow!=undefined){alwaysShow=obj.attr.alwaysShow}
 						
 						var ratioCam=jt.w()/jt.cam().w;
+						var divider=1;
 						if(o.cam==true){
 							fS*=ratioCam;
+							divider=ratioCam
 						}
 						
 						if(align=="center"){
@@ -314,9 +316,9 @@ var fullPage=[`<html>
 						}
 						
 						jt.font(font,fS);
-						var w=jt.textW(t)/fS;
-						var w1=jt.textW(".")/fS;
-						var h=jt.textH(t)/fS;
+						var w=jt.textW(t)/divider;
+						var w1=jt.textW(".")/divider;
+						var h=jt.textH(t)/divider;
 						if((w<=obj.w && h<=obj.h) || alwaysShow){
 							jt.text(t,obj.x+offset,obj.y,c,align,fS,r);
 						}else{
@@ -348,7 +350,7 @@ var fullPage=[`<html>
 										//draw all lines
 										for(var j=0;j<maxLines;j++){
 											var str=t.substr(j*maxLen,maxLen);
-											jt.text(str,obj.x+offset,obj.y+(h*j),c,align,r);
+											jt.text(str,obj.x+offset,obj.y+(h*j),c,align,fS,r);
 										}
 									}
 								}
