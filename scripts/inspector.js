@@ -1,449 +1,340 @@
-var fullPage=[`<html>
-    <head>
-        <title>App</title>
-        <style>
-		*{
-			padding: 0;
-			margin: 0;
+var inspector={
+	lastSelected:0,
+	selected:[],
+	taken:0,
+	takenMax:120,
+	closeEditor:0,
+	closeEditorMax:120,
+	nameError:"",
+	fields:{
+		insName:0,
+		insX:0,
+		insY:0,
+		insW:0,
+		insH:0,
+		insA:0,
+		insR:0,
+		insText:0,
+		insSize:0,
+		insOrder:0,
+		insTags:0,
+		insView:0,
+	},
+	insToVal:{
+		insName:"name",
+		insX:"x",
+		insY:"y",
+		insW:"w",
+		insH:"h",
+		insA:"alpha",
+		insR:"r",
+		insText:"text",
+		insSize:"size",
+		insOrder:"x",
+		insTags:"tags",
+		insView:"view",
+		insCam:"cam"
+	},
+	color:undefined,
+	picker:[0,0,0,1],
+	pickerY:-2,
+	rgba:[255,0,0,1],
+	bgBlack:false,
+	setup:function(){
+		menu.fields.push(new Field(jt.pX(84),jt.pY(18),jt.pX(15),jt.pY(2),"insName","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(42),jt.pX(5),jt.pY(2),"insX","",""));
+		menu.fields.push(new Field(jt.pX(94),jt.pY(42),jt.pX(5),jt.pY(2),"insY","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(45),jt.pX(5),jt.pY(2),"insW","",""));
+		menu.fields.push(new Field(jt.pX(94),jt.pY(45),jt.pX(5),jt.pY(2),"insH","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(53),jt.pX(2),jt.pY(2),"insA","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(56),jt.pX(2),jt.pY(2),"insR","",""));
+		
+		
+		menu.fields.push(new Field(jt.pX(84),jt.pY(60),jt.pX(5),jt.pY(2),"insOrder","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(63),jt.pX(15),jt.pY(2),"insView","",""));
+		//menu.fields.push(new Field(jt.pX(94),jt.pY(60),jt.pX(4),jt.pY(2),"insCam","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(66),jt.pX(15),jt.pY(2),"insTags","",""));
+		
+		
+		menu.fields.push(new Field(jt.pX(84),jt.pY(72),jt.pX(15),jt.pY(10),"insText","",""));
+		menu.fields.push(new Field(jt.pX(84),jt.pY(86),jt.pX(5),jt.pY(2),"insSize","",""));
+		//menu.fields.push(new Field(jt.pX(84),jt.pY(60),jt.pX(2),jt.pY(2),"insAlign","",""));
+		
+		for(var i=0;i<menu.fields.length;i++){
+			if(this.fields.hasOwnProperty(menu.fields[i].id)){
+				this.fields[menu.fields[i].id]=i;
+			}
 		}
-            
-		#can{
-			position: absolute;
-			margin:auto;
-			top:0;
-			left:0;
-			right:0;
-			bottom:0;
-			border:1px solid;
-		}
-	
-		#can + span{
-			display: none;	
-		}
-
-		#canContainer{
-			text-align:center;
-			position:relative;
-			width:100%;
-			height:100%;
-		}
-        </style>
-    </head>
-    <body>
-
-        <div id="canContainer"><canvas id="can"></canvas><span>Made with <a href="https://github.com/ToniestTony/jt_lib">jt_lib14.js</a></span></div>
-        
-
-    </body>
-	<script src="jquery.js"></script>
-    <script src="jt_lib14.js"></script>
-    
-    <script>
-	`,`
-	function JTEObject(x,y,w,h,c,r,alpha,attr,cam,v,tags,name){
-		this.x=x;
-		this.y=y;
-		this.w=w;
-		this.h=h;
-		this.c=c;
-		this.r=r;
-		this.alpha=alpha;
 		
-		this.attr=attr;
+		//x,y,w,h,action,trigger,text,tab,key,key2
+		menu.buttons.push(new Button(jt.pX(97),jt.pY(18),jt.pX(2),jt.pY(2),"insClear",false,"X",""))
+		menu.buttons.push(new Button(jt.pX(81),jt.pY(80),jt.pX(2),jt.pY(2),"insClearText",false,"X",""))
+		menu.buttons.push(new Button(jt.pX(96),jt.pY(60),jt.pX(3),jt.pY(2),"insCam",false,"False",""))
+		menu.buttons.push(new Button(jt.pX(81),jt.pY(91),jt.pX(18),jt.pY(8),"insEditor",false,"Open code editor",""))
+		menu.buttons.push(new Button(jt.pX(84),jt.pY(83),jt.pX(5),jt.pY(2),"insAlignLeft",false,"Left",""))
+		menu.buttons.push(new Button(jt.pX(89),jt.pY(83),jt.pX(5),jt.pY(2),"insAlignCenter",false,"Center",""))
+		menu.buttons.push(new Button(jt.pX(94),jt.pY(83),jt.pX(5),jt.pY(2),"insAlignRight",false,"Right",""))
 		
-		this.cam=cam;
-		this.view=v;
-		this.tags=tags;
+		this.grad=jt.canvas.ctx.createLinearGradient(0,jt.pY(49),0,jt.pY(9+49));
+		this.grad.addColorStop(0, 'rgba(255, 0, 0, 1)');
+		this.grad.addColorStop(0.05, 'rgba(255, 0, 0, 1)');
+		this.grad.addColorStop(0.20, 'rgba(255, 255, 0, 1)');
+		this.grad.addColorStop(0.35, 'rgba(0, 255, 0, 1)');
+		this.grad.addColorStop(0.50, 'rgba(0, 255, 255, 1)');
+		this.grad.addColorStop(0.65, 'rgba(0, 0, 255, 1)');
+		this.grad.addColorStop(0.80, 'rgba(255, 0, 255, 1)');
+		this.grad.addColorStop(0.95, 'rgba(255, 0, 0, 1)');
+		this.grad.addColorStop(1, 'rgba(255, 0, 0, 1)');
+		this.pickerY=jt.pY(49);
 		
-		this.name=name;
+		this.gradW=jt.canvas.ctx.createLinearGradient(jt.pX(87),0,jt.pX(87+9),0);
+		this.gradW.addColorStop(0, 'rgba(255, 255, 255, 1)');
+		this.gradW.addColorStop(0.1, 'rgba(255, 255, 255, 1)');
+		this.gradW.addColorStop(0.9, 'rgba(255, 255, 255, 0)');
+		this.gradW.addColorStop(1, 'rgba(255, 255, 255, 0)');
 		
-	}
-	
-	var jte={
-		w:`,`,
-		h:`,`,
-		originalW:0,
-		originalH:0,
-		title:"`,`",
-		maximize:`,`,
-		fontSize:20,
+		this.gradB=jt.canvas.ctx.createLinearGradient(0,jt.pY(49),0,jt.pY(9+49));
+		this.gradB.addColorStop(0, 'rgba(0, 0, 0, 0)');
+		this.gradB.addColorStop(0.1, 'rgba(0, 0, 0, 0)');
+		this.gradB.addColorStop(0.9, 'rgba(0, 0, 0, 1)');
+		this.gradB.addColorStop(1, 'rgba(0, 0, 0, 1)');
+	},
+	update:function(){
 		
-		objects:[],
-		
-		views:`,`,
-		view:"Start",
-		
-		bg:"white",
-		
-		code:"",
-		
-		pR:1,
-		
-		initialize:function(){
-			`,`
-			for(var i=0;i<this.objects.length;i++){
-				if(this.objects[i].attr!='undefined'){
-					this.objects[i].attr=JSON.parse(this.objects[i].attr);
-				}else{
-					this.objects[i].attr=undefined;
-				}
-				this.objects[i].tags=JSON.parse(this.objects[i].tags);
-				//this.objects[i].setup();
-			}
-		},
-		
-		//setup is called when the game has finished loading
-		setup:function(){
-			this.originalW=this.w;
-			this.originalH=this.h;
-			this.initialize();
-			//jt.fullscreen();
-			jt.baseline("top");
-			jt.pixelRate(this.pR);
-			
-			if(this.title!=""){document.title=this.title;}
-			
-			var can=document.getElementById("can");
-		
-			can.width=this.w*this.pR;
-			can.height=this.h*this.pR;
-			can.style.width=this.w;
-			can.style.height=this.h;
-			can.getContext("2d").scale(this.pR,this.pR);
-			
-			jt.cam().w=this.w*this.pR;
-			jt.cam().h=this.h*this.pR;
-			
-			jt.smoothing(false);
-			
-			//eval codes
-			if(this.code!=undefined){
-				eval(this.code);
-			}
-
-			this.setups();
-		},
-		setups:function(){
-			for(var i=0;i<this.objects.length;i++){
-				if(this.objects[i].setup!=undefined){
-					this.objects[i].setup();
-				}
-			}
-		},
-		//update is called every frame
-		update:function(){
-			jt.bg(this.bg);
-			for(var i=0;i<this.objects.length;i++){
-				if(this.objects[i].view==jte.view || this.objects[i].view==""){
-					if(this.objects[i].update!=undefined){
-						this.objects[i].update();
-					}
-				}
-			}
-		},
-		
-		//getObject
-		getObject:function(name,view){
-			var found=undefined;
-			if(view==undefined){
-				for(var i=0;i<this.objects.length;i++){
-					if(this.objects[i].name==name){
-						found=this.objects[i];
-						break;
-					}
-				}
-			}else{
-				for(var i=0;i<this.objects.length;i++){
-					if(this.objects[i].name==name && this.objects[i].view==view){
-						found=this.objects[i];
-						break;
-					}
-				}
-			}
-			return found;
-		},
-		
-		//getObjects
-		getObjects:function(tags,view){
-			var found=[];
-			if(tags==undefined){
-				if(view==undefined){
-					for(var i=0;i<this.objects.length;i++){
-						found.push(this.objects[i]);
-					}
-				}else{
-					for(var i=0;i<this.objects.length;i++){
-						if(this.objects[i].view==view){
-							found.push(this.objects[i]);
-						}
-					}
-				}
-				return found;
-			}else{
-				if(view==undefined){
-					for(var i=0;i<this.objects.length;i++){
-						for(var j=0;j<this.objects[i].tags.length;j++){
-							if(tags.indexOf(this.objects[i].tags[j])!=-1){
-								found.push(this.objects[i]);
-								break;
-							}
-						}
-					}
-				}else{
-					for(var i=0;i<this.objects.length;i++){
-						for(var j=0;j<this.objects[i].tags.length;j++){
-							if(this.objects[i].view==view){
-								if(tags.indexOf(this.objects[i].tags[j])!=-1){
-									found.push(this.objects[i]);
-									break;
-								}
-							}
-						}
-					}
-				}
-				return found;
-			}
-		},
-		
-		//delObject
-		delObject:function(name){
-			var found=undefined;
-			for(var i=0;i<this.objects.length;i++){
-				if(this.objects[i].name==name){
-					this.objects.splice(i,1);
-					break;
-				}
-			}
-		},
-		
-		//x,y,w,h,c,alpha,attr,cam,v,name
-		//newObject
-		newObject:function(x,y,w,h,c,r,alpha,attr,cam,view,tags,name){
-			var n="";
-			if(typeof x === 'object' && x !== null){
-				if(x.name==undefined){
-					x.name="Obj"+jte.objects.length;
-					n=x.name;
-				}else{
-					n=x.name;
-				}
-				jte.objects.push(new JTEObject(x.x,x.y,x.w,x.h,x.c,x.r,x.alpha,x.attr,x.cam,x.view,x.tags,x.name))
-			}else if(typeof x === 'number'){
-				if(name==undefined){
-					name="Obj"+jte.objects.length;
-				}
-				n=name;
-				jte.objects.push(new JTEObject(x,y,w,h,c,r,alpha,attr,cam,view,tags,name))
-			}
-			return jte.getObject(n);
-		},
-		
-		//setView
-		setView:function(name){
-			if(jte.views.indexOf(name)!=-1){
-				jte.view=name;
-			}
-		},
-		
-		//getView
-		getView:function(i){
-			if(i==undefined){
-				return jte.view;
-			}else{
-				return jte.views[i];
-			}
-		},
-		
-		//getViews
-		getViews:function(){
-			return jte.views;
-		},
-		
-		//draw objects
-		draw:function(o){
-			if(o.view=="" || o.view==this.view){
-				var outline=false;
-				var c=o.c;
-				var r=o.r;
-				var obj={x:o.x,y:o.y,w:o.w,h:o.h,attr:o.attr,selected:o.selected,alpha:o.alpha};
-				if(jt.w()!=this.originalW && jt.h()!=this.originalH){
-					var ratioX=jt.w()/this.originalW;
-					var ratioY=jt.h()/this.originalH;
-					obj.x=obj.x*ratioX;
-					obj.y=obj.y*ratioY;
-					obj.w=obj.w*ratioX;
-					obj.h=obj.h*ratioY;
-				}
-				
-				if(o.cam==false){
-					jt.camactive(false);
-				}
-				//change alpha
-				var changeAlpha=false;
-				if(obj.alpha!=1){
-					changeAlpha=true;
-					jt.alpha(o.alpha);
-				}
-				
-				if(obj.attr!=undefined){
-					if(obj.attr.text!=undefined){
-						jt.baseline("top");
-						var t=obj.attr.text;
-						var fS=jte.fontSize;
-						var font="Consolas";
-						var align="left";
-						var alwaysShow=false
-						var offset=0;
-						
-						if(obj.attr.size!=undefined){fS=obj.attr.size}
-						if(obj.attr.font!=undefined){font=obj.attr.font}
-						if(obj.attr.align!=undefined){align=obj.attr.align}
-						if(obj.attr.alwaysShow!=undefined){alwaysShow=obj.attr.alwaysShow}
-						
-						var ratioCam=jt.w()/jt.cam().w;
-						var divider=1;
-						if(o.cam==true){
-							fS*=ratioCam;
-							divider=ratioCam
-						}
-						
-						if(align=="center"){
-							offset=obj.w/2;
-						}
-						
-						if(align=="right"){
-							offset=obj.w;
-						}
-						
-						jt.font(font,fS);
-						var w=jt.textW(t)/divider;
-						var w1=jt.textW(".")/divider;
-						var h=jt.textH(t)/divider;
-						if((w<=obj.w && h<=obj.h) || alwaysShow){
-							jt.text(t,obj.x+offset,obj.y,c,align,fS,r);
-						}else{
-							if(h>obj.h){
-								//too small
-							}else{
-								if(w>obj.w){
-									if(w1>obj.w){
-										//too small
-									}else{
-										//line breaks
-										var maxLen=1;
-										for(var j=1;j<t.length;j++){
-											if(w1*j>obj.w){
-												break;
-											}else{
-												maxLen=j;
-											}
-										}
-										var numLines=Math.ceil(t.length/maxLen);
-										var maxLines=1;
-										for(var j=1;j<=numLines;j++){
-											if(h*j>obj.h){
-												break;
-											}else{
-												maxLines=j;
-											}
-										}
-										//draw all lines
-										for(var j=0;j<maxLines;j++){
-											var str=t.substr(j*maxLen,maxLen);
-											jt.text(str,obj.x+offset,obj.y+(h*j),c,align,fS,r);
-										}
-									}
-								}
-							}
-						}
-						
-						
-					}else if(obj.attr.img!=undefined){
-						if(jt.assets.images[obj.attr.img]!=undefined){
-							jt.image(obj.attr.img,obj.x,obj.y,obj.w,obj.h,r);
-						}else{
-							jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
-						}
-					}else if(obj.attr.anim!=undefined){
-						if(jt.assets.images[obj.attr.anim]!=undefined){
-							jt.anim(obj.attr.anim,obj.x,obj.y,obj.w,obj.h,r);
-						}else{
-							jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
-						}
-					}
-				}else{
-					jt.rect(obj.x,obj.y,obj.w,obj.h,c,r);	
-				}
-				if(changeAlpha){
-					jt.alpha(1)
-				}
-				if(obj.selected && outline){
-					jt.rectB(obj.x,obj.y,obj.w,obj.h,[0,0,0,0.75],r,2);
-				}
-				if(o.cam==false){
-					jt.camactive(true);
+		this.selected=[]
+		for(var i=0;i<view.objects.length;i++){
+			if(view.objects[i].view==view.view || view.objects[i].view==""){
+				if(view.objects[i].selected){
+					this.selected.push(i);
 				}
 			}
 		}
-	}
-
-	//define the jt object on a global scale
-	var jt=undefined;
-	
-	var interval=undefined;
-	
-	var loadEval=[];
-	
-	function loadAssets(arr){
-		for(var i=0;i<arr.length;i++){
-			if(arr[i].type=="image"){
-				loadEval.push("jt.loadImage('"+arr[i].path+"','"+arr[i].name+"');")
-			}else if(arr[i].type=="audio"){
-				loadEval.push("jt.loadSound('"+arr[i].path+"','"+arr[i].name+"',"+arr[i].repeat+");")
-			}else if(arr[i].type=="anim"){
-				loadEval.push("jt.loadAnim('"+arr[i].path+"','"+arr[i].name+"',"+arr[i].frames+","+arr[i].speed+");")
+		
+		
+		if(jt.mPress()){
+			var show={x:jt.pX(80),y:jt.pY(21),w:jt.pX(20),h:jt.pY(20)}
+			if(jt.cRect(show,{x:jt.mX(),y:jt.mY(),w:2,h:2})){
+				this.bgBlack=!this.bgBlack;
 			}
 		}
-	}
-	
-	
-	function loadJt(){
-		clearInterval(interval);
-		//parameters of the JT object:
-		//id of the canvas
-		//width
-		//height
-		//frames per second
-		//setup function name
-		//update function name
-		//object which has the function name
-		//mobile audio button size (0 for none)
-		//fullScreen button on mobile
 		
-		jt=new JT("can",jte.w,jte.h,60,'setup','update','jte',0,jte.maximize);
 		
-		for(var i=0;i<loadEval.length;i++){
-			eval(loadEval[i])
-		}
-		//jt.loadImage("image.png","name")
-		//jt.loadSound("sound.wav","name")
-		//jt.loadAnim("src.png","name",number of frames,fps);
-	}
-	
-	`,`
-	
-	
-	//you can also use $(document).ready(function(){}); with jQuery
-	window.addEventListener("load",function(){
-		if(jte.code!=undefined){
-			loadJt();
+		//color picker
+		this.picker=undefined;
+		if(jt.mX()>=jt.pX(87) && jt.mX()<=jt.pX(99) && jt.mY()>=jt.pY(49) && jt.mY()<=jt.pY(49+9)){
+			menu.onColor=true;
+			if(jt.mCheck()){
+				if(jt.mX()<=jt.pX(96)){
+					var img=jt.canvas.ctx.getImageData(jt.mX()*app.pR,jt.mY()*app.pR,1,1).data;
+					this.picker=[img[0],img[1],img[2],1];
+					if(this.selected.length==1){
+						view.objects[inspector.selected[0]].c=this.picker;
+					}
+				}else if(jt.mX()>=jt.pX(97)){
+					var img=jt.canvas.ctx.getImageData(jt.mX()*app.pR,jt.mY()*app.pR,1,1).data;
+					this.rgba=[img[0],img[1],img[2],1];
+					this.pickerY=jt.mY();
+				}
+			}
 		}else{
-			interval=setInterval(function(){if(jte.code!=undefined){
-			loadJt();}},10);
+			menu.onColor=false
 		}
-	});
-	
-	
-	`,`
-	</script>
-</html>`]
+	},
+	draw:function(){
+		var ratioCam=jt.w()/jt.cam().w;
+		
+		var cBg="white";
+		var cText="black";
+		if(app.dark){cBg="#444";cText="white"}
+		jt.rect(jt.pX(80),jt.pY(15),jt.pX(20),jt.pY(85),cBg);
+		jt.rectB(jt.pX(80),jt.pY(15),jt.pX(20),jt.pY(85),"black",0,2);
+		jt.font("Consolas",app.fontSize);
+		jt.text("Inspector",jt.pX(100-20+0.5),jt.pY(15.5),cText,"left");
+		
+		if(this.bgBlack){
+			jt.rect(jt.pX(80),jt.pY(21),jt.pX(20),jt.pY(20),cBg)
+			jt.rectB(jt.pX(80),jt.pY(21),jt.pX(20),jt.pY(20),cText,0,2)
+		}else{
+			jt.rect(jt.pX(80),jt.pY(21),jt.pX(20),jt.pY(20),cBg)
+			jt.rectB(jt.pX(80),jt.pY(21),jt.pX(20),jt.pY(20),cText,0,2)
+		}
+		
+		var inspectorWH=jt.pX(20)/jt.pY(20);
+		
+		if(this.selected.length!=1){
+			jt.text("Select 1 object to inspect it",jt.pX(90),jt.pY(30),cText,"center");
+			for (var field in this.fields) {
+				if (Object.prototype.hasOwnProperty.call(this.fields, field)) {
+					menu.fields[this.fields[field]].text="";
+				}
+			}
+			this.color=undefined;
+		}else{
+			if(this.lastSelected!=this.selected[0]){
+				for (var field in this.fields) {
+					if (Object.prototype.hasOwnProperty.call(this.fields, field)) {
+						menu.fields[this.fields[field]].text="";
+					}
+				}
+				this.color=undefined;
+			}
+			this.lastSelected=this.selected[0];
+			for (var field in this.fields) {
+				if (Object.prototype.hasOwnProperty.call(this.fields, field)) {
+					if(menu.writing!=this.fields[field]){
+						var toString=true;
+						if(field=="insName" || field=="insView"){toString=false;}
+						if(field=="insText"){
+							if(view.objects[inspector.selected[0]].attr!=undefined){
+								if(view.objects[inspector.selected[0]].attr.text!=undefined){
+									menu.fields[this.fields[field]].text=view.objects[inspector.selected[0]]["attr"]["text"];
+								}
+								
+							}
+							
+						}else if(field=="insSize"){
+							if(view.objects[inspector.selected[0]].attr!=undefined){
+								if(view.objects[inspector.selected[0]].attr.size!=undefined){
+									menu.fields[this.fields[field]].text=view.objects[inspector.selected[0]]["attr"]["size"].toString();
+								}
+							}
+							
+						}else if(field=="insOrder"){
+							menu.fields[this.fields[field]].text=inspector.selected[0].toString();
+							
+						}else if(field=="insTags"){
+							menu.fields[this.fields[field]].text=JSON.stringify(view.objects[inspector.selected[0]].tags);
+							
+						}else{
+							if(toString){
+								menu.fields[this.fields[field]].text=view.objects[inspector.selected[0]][this.insToVal[field]].toString();
+							}else{
+								menu.fields[this.fields[field]].text=view.objects[inspector.selected[0]][this.insToVal[field]].toString();
+							}
+						}
+						
+					}
+				}
+			}
+			if(this.color==undefined){this.color=view.objects[inspector.selected[0]].c}
+			if(this.picker!=undefined){this.color=this.picker}
+			var c=this.color;
+			var inv="black";
+			if(Array.isArray(c)){
+				inv=[255-c[0],255-c[1],255-c[2],1]
+				if(inv[0]>=200 && inv[1]>=200 && inv[2]>=200){
+					inv=[255,0,0,1];
+				}
+			}
+			
+			//draw the objects inside preview
+			var obj=view.objects[this.selected[0]];
+			var old={x:obj.x,y:obj.y,w:obj.w,h:obj.h};
+			var resized={x:jt.pX(80),y:jt.pY(21),w:obj.w,h:obj.h};
+			var ratioW=obj.w/(obj.h);
+			var text=false;
+			if(obj.attr!=undefined){
+				if(obj.attr.text!=undefined){
+					text=true;
+				}
+			}
+			if(ratioW/inspectorWH>1){
+				resized.w=jt.pX(20);
+				resized.h=resized.w/ratioW;
+				if(text){resized.h=jt.pY(20)}
+				resized.x=jt.pX(80)+((jt.pX(20)-resized.w)/2);
+				resized.y=jt.pY(21)+((jt.pY(20)-resized.h)/2);
+			}else{
+				resized.h=jt.pY(20);
+				resized.w=resized.h*ratioW;
+				if(text){resized.w=jt.pX(20)}
+				resized.x=jt.pX(80)+((jt.pX(20)-resized.w)/2);
+				resized.y=jt.pY(21)+((jt.pY(20)-resized.h)/2);
+			}
+			
+			view.objects[this.selected[0]].x=resized.x;
+			view.objects[this.selected[0]].y=resized.y;
+			view.objects[this.selected[0]].w=resized.w;
+			view.objects[this.selected[0]].h=resized.h;
+			
+			view.drawObject(view.objects[this.selected[0]],false);
+			
+			view.objects[this.selected[0]].x=old.x;
+			view.objects[this.selected[0]].y=old.y;
+			view.objects[this.selected[0]].w=old.w;
+			view.objects[this.selected[0]].h=old.h;
+			
+			
+			jt.rect(jt.pX(80)+1,jt.pY(15),jt.pX(20)-2,jt.pY(6)-1,cBg)
+			jt.font("Consolas",app.fontSize);
+			jt.text("Inspector",jt.pX(100-20+0.5),jt.pY(15.5),cText,"left");
+			jt.rect(jt.pX(80)+1,jt.pY(41)+1,jt.pX(20)-2,jt.pY(59)-2,cBg)
+			
+			
+			
+			//draw labels
+			jt.font("Consolas",app.fontSize*0.75);
+			jt.text("Name: ",jt.pX(84),jt.pY(18),cText,"right");
+			if(this.taken>0){
+				this.taken--;
+				if(this.taken<this.takenMax/2){
+					jt.alpha(this.taken/(this.takenMax/2));
+					jt.text("Name is "+this.nameError,jt.pX(90),jt.pY(16.5),"red","center");
+					jt.alpha(1);
+				}else{
+					jt.text("Name is "+this.nameError,jt.pX(90),jt.pY(16.5),"red","center");
+				}
+			}
+			
+			if(this.closeEditor>0){
+				this.closeEditor--;
+				if(this.closeEditor<this.closeEditorMax/2){
+					jt.alpha(this.closeEditor/(this.closeEditorMax/2));
+					jt.text("Close code editor",jt.pX(84),jt.pY(58.5),"red","left");
+					jt.alpha(1);
+				}else{
+					jt.text("Close code editor",jt.pX(84),jt.pY(58.5),"red","left");
+				}
+			}
+			
+			jt.text("X: ",jt.pX(84),jt.pY(42),cText,"right");
+			jt.text("Y: ",jt.pX(94),jt.pY(42),cText,"right");
+			jt.text("Width: ",jt.pX(84),jt.pY(45),cText,"right");
+			jt.text("Height: ",jt.pX(94),jt.pY(45),cText,"right");
+			
+			//color
+			jt.text("Color: ",jt.pX(84),jt.pY(49.5),cText,"right");
+			jt.text("Alpha: ",jt.pX(84),jt.pY(53),cText,"right");
+			jt.text("Rotate: ",jt.pX(84),jt.pY(56),cText,"right");
+		
+			jt.rect(jt.pX(84),jt.pY(49),jt.pX(2)-2,jt.pY(3)-1,this.color)
+			jt.rectB(jt.pX(84),jt.pY(49),jt.pX(2)-2,jt.pY(3)-1,inv,0,2)
+			
+			jt.rect(jt.pX(87),jt.pY(49),jt.pX(9),jt.pY(9),this.rgba)
+			jt.rect(jt.pX(87),jt.pY(49),jt.pX(9),jt.pY(9),this.gradW)
+			jt.rect(jt.pX(87),jt.pY(49),jt.pX(9),jt.pY(9),this.gradB)
+			jt.rectB(jt.pX(87),jt.pY(49),jt.pX(9),jt.pY(9),cText,0,1)
+			
+			jt.rect(jt.pX(96.5),this.pickerY-jt.pY(0.25),jt.pX(3),jt.pY(0.5),"black")
+			jt.rect(jt.pX(97),jt.pY(49),jt.pX(2),jt.pY(9),this.grad)
+			jt.rectB(jt.pX(97),jt.pY(49),jt.pX(2),jt.pY(9),cText,0,1)
+			
+			jt.text("Order: ",jt.pX(84),jt.pY(60),cText,"right");
+			jt.text("In Camera: ",jt.pX(96),jt.pY(60),cText,"right");
+			jt.text("View: ",jt.pX(84),jt.pY(63),cText,"right");
+			jt.text("Tags: ",jt.pX(84),jt.pY(66),cText,"right");
+			
+			if(view.objects[this.selected[0]].attr!=undefined){
+				if(view.objects[this.selected[0]].attr.text!=undefined){
+					jt.text("Text: ",jt.pX(84),jt.pY(72),cText,"right");
+					jt.text("Align: ",jt.pX(84),jt.pY(83),cText,"right");
+					jt.text("Size: ",jt.pX(84),jt.pY(86),cText,"right");
+				}
+			}
+			
+			
+		}
+		
+	},
+
+};
