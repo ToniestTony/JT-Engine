@@ -14,6 +14,9 @@ var menu={
 	fields:[],
 	writing:-1,
 	writingFrame:0,
+	backspace:0,
+	backspaceMax:20,
+	backspaceRate:2,
 	
 	macro:false,
 	uploadsImage:[],
@@ -644,7 +647,7 @@ var menu={
 					keyOnly=true;
 				}
 				//exceptions
-				if(this.buttons[i].action.substring(0,3)=="ins" && inspector.selected.length!=1){
+				if(this.buttons[i].action.substring(0,3)=="ins" && inspector.selected.length==0){
 					valid=false;
 				}
 				if(valid){
@@ -855,6 +858,12 @@ var menu={
 						}else if(this.buttons[i].action=="insClear"){
 							if(inspector.selected.length==1){
 								this.fields[inspector.fields.insName].text="";
+
+							}
+						}else if(this.buttons[i].action=="insClearText"){
+							if(inspector.selected.length==1){
+								view.objects[inspector.selected[0]]["attr"].text="";
+								this.fields[inspector.fields.insText].text="";
 
 							}
 						}else if(this.buttons[i].action=="insAlignLeft"){
@@ -1259,6 +1268,25 @@ var menu={
 			"0","1","2","3","4","5","6","7","8","9","-","=",",",".",";",
 			"backspace","space","left","right","up","down","enter","num/"];
 			var specials=["backspace","left","right","up","down","enter"];
+			if(jt.kCheck("backspace")){
+				//holding backspace erase quickly
+				this.backspace++;
+				if(this.backspace>=this.backspaceMax && this.backspace%this.backspaceRate==0){
+					this.writingFrame=0;
+					if(this.fields[this.writing].cursor>0){
+						var start=this.fields[this.writing].text.slice(0,this.fields[this.writing].cursor-1);
+						var end=this.fields[this.writing].text.slice(this.fields[this.writing].cursor,this.fields[this.writing].text.length);
+						this.fields[this.writing].text=start+end;
+					}
+					
+					this.fields[this.writing].cursor--;
+					if(this.fields[this.writing].cursor<0){
+						this.fields[this.writing].cursor=0;
+					}
+				}
+			}else{
+				this.backspace=0;
+			}
 			for(var i=0;i<keys.length;i++){
 				if(jt.kPress(keys[i])){
 					var hMult=(Math.floor(this.fields[this.writing].h/jt.pY(2)));
@@ -1476,7 +1504,7 @@ var menu={
 					show=false;
 				}
 				if(this.buttons[i].action.substring(0,3)=="ins"){
-					if(this.buttons[i].action.substring(0,8)=="insAlign" && inspector.selected.length==1){
+					if((this.buttons[i].action.substring(0,8)=="insAlign" || this.buttons[i].action.substring(0,12)=="insClearText") && inspector.selected.length==1){
 						if(view.objects[inspector.selected[0]].attr==undefined){
 							show=false;
 						}else if(view.objects[inspector.selected[0]].attr.text==undefined){
