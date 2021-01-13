@@ -277,12 +277,16 @@ var inspector={
 			jt.text("Name: ",jt.pX(84),jt.pY(18),cText,"right");
 			if(this.taken>0){
 				this.taken--;
+				var text="Name is "+this.nameError;
+				if(this.nameError=="editor"){
+					text="Close editor first"
+				}
 				if(this.taken<this.takenMax/2){
 					jt.alpha(this.taken/(this.takenMax/2));
-					jt.text("Name is "+this.nameError,jt.pX(90),jt.pY(16.5),"red","center");
+					jt.text(text,jt.pX(90),jt.pY(16.5),"red","center");
 					jt.alpha(1);
 				}else{
-					jt.text("Name is "+this.nameError,jt.pX(90),jt.pY(16.5),"red","center");
+					jt.text(text,jt.pX(90),jt.pY(16.5),"red","center");
 				}
 			}
 			
