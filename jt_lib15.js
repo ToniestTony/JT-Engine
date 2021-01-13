@@ -3,7 +3,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
     //initialize the canvas
     this.init=function(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBtn){
         //add attributes to the canvas object of JT
-        this.version=14;
+        this.version=15;
         var actualId=id;
         
         if(typeof(id)=="object"){
@@ -248,7 +248,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
         setupName:"setup",
         updateName:"update",
         obj:undefined,
-
+		
         frames:0,
         fps:60,
         sec:0,
@@ -262,8 +262,11 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
         loadCounter:0,
         loadCounterMax:0,
 		
+		playAll:false,
+		
 		fullScreenBtn:undefined,
 		focused:false,
+		soundsPlayed:false,
 		
 		debug:false,
 		debugs:[],
@@ -329,6 +332,28 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 			
             this.setupDone=true;
         },
+		//play all sounds
+		playAllSounds: function(){
+			//Fix sound delay
+			this.context.assets.mute(true);
+			for(var soun in this.context.assets.sounds){
+				if(this.context.assets.sounds.hasOwnProperty(soun)){
+					if(soun!="title"){
+						this.context.assets.play(soun)
+					}
+				}
+			}
+			
+			for(var soun in this.context.assets.sounds){
+				if(this.context.assets.sounds.hasOwnProperty(soun)){
+					if(soun!="title"){
+						this.context.assets.stop(soun)
+					}
+				}
+			}
+			this.context.assets.mute(false);
+			this.soundsPlayed=true;
+		},
         //start the main loop
         startLoop: function(){
             context=this;
@@ -338,8 +363,28 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
         changeLoop: function(){
             context=this;
             clearInterval(this.interval)
+			this.waveIterations=Math.PI*2/this.fps;
             this.interval=self.setInterval(function(){context.mainLoop()},1000/this.fps,context)
         },
+		//loading screen
+		loadingScreen:function(){
+			var ctx=this.context.canvas.ctx;
+			ctx.fillStyle="white";
+			ctx.fillRect(0,0,this.context.canvas.w,this.context.canvas.h)
+			ctx.fillStyle="black";
+			
+			ctx.font="40px Consolas";
+			ctx.textAlign="center";
+			ctx.textBaseline="top";
+			ctx.fillText("JT Library "+this.context.version,this.context.canvas.w/2,20)
+			
+			var percent=Math.floor(this.loadCounter/this.loadCounterMax*100);
+			
+			ctx.font="20px Consolas";
+			ctx.textBaseline="Middle";
+			ctx.fillText("Loading game: "+percent+"%",this.context.canvas.w/2,this.context.canvas.h/2)
+
+		},
         mainLoop:function(){
             
             //if jt.stop==true, remove the setInterval
@@ -362,7 +407,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
                             var sound=this.context.assets.sounds[soun]
 
                             if(sound!=undefined){
-                                if(sound.duration==0){
+                                if(sound.readyState<4){
                                     load=false;
 
                                 }else{
@@ -413,7 +458,8 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
                     }
 
                 console.log("(JT"+this.context.version+")loop.mainLoop","Load progress: "+this.loadCounter+" / "+this.loadCounterMax)
-                if(load){this.loaded=true;}
+				this.loadingScreen();
+				if(load){this.loaded=true;}
 
             }else
             if(!this.pause){
@@ -493,7 +539,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 						var w=50/8;
 						
 						//check if user pressed the button
-						if(this.context.mouse.check(0,0,w*8,w*8,true,false) || this.context.touch.check(0,0,w*8,w*8,true,false)){
+						if(this.context.mouse.check(0,0,w*8,w*8,true,false) || this.context.touch.check(0,0,w*8,w*8,true,false) || jt.kPress("f11")){
 							this.context.touch.touches=[];
 							
 						/*	var el = document.createElement("DIV");
@@ -513,10 +559,22 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 							
 						}
 					}else{
-						if(this.context.mouse.check(0,0,this.context.canvas.w,this.context.canvas.h,true,false) || this.context.touch.check()){
+						if(this.context.mouse.check() || this.context.touch.check()){
 							this.focused=true;
+							if(!this.playAll){
+								this.playAllSounds();
+								this.playAll=true;
+							}
 							this.context.touch.touches=[];
 						}
+					}
+				}
+				
+				//fullscreenBtn remove inputs until clicked
+				if(this.fullScreenBtn && !document.fullscreen){
+					if(!this.focused){
+						this.context.keyboard.release();
+						this.context.gamepad.release();
 					}
 				}
 				
@@ -583,11 +641,14 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 				if(this.debug){
 					for(var i=0;i<this.debugs.length;i++){
 						var d=this.debugs[i];
+						var cam=this.context.draw.cam.active;
+						this.context.draw.cam.active=false;
 						if(d.type=="text"){
 							this.context.draw.text(d.string,d.x,d.y,d.color,d.textAlign,d.fontSize,d.rotation,d.maxChars,d.newLineHeight);
 						}else if(d.type=="shape"){
 							this.context.draw.shape(d);
 						}
+						this.context.draw.cam.active=cam;
 						if(d.stay==false){
 							this.debugs.splice(i,1)
 							i--;
@@ -952,7 +1013,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             this.repeat=false;
             if(repeat!=undefined){
                 if(repeat==true){
-                    this.sounds[name].addEventListener('ended', this.stopPlay.bind(context,name), false);
+                    this.sounds[name].loop=true;
                 }
                 this.repeat=repeat;
             }
@@ -1370,6 +1431,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 
         //Drawing text
         text:function(string,x,y,color,textAlign,fontSize,rotation,maxChars,newLineHeight){
+			string=string.toString();
             if(textAlign!=undefined){
                 this.ctx.textAlign=textAlign
             }
@@ -1492,6 +1554,11 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             this.ctx.font=this.fontSize+"px "+this.fontName;
             this.ctx.fillStyle= this.color(color);
         },
+		
+		//Setting the alignment
+		align:function(align){
+			this.ctx.textAlign=align
+		},
 		
 		//Setting the baseline
         baseline:function(baseline){
@@ -1654,8 +1721,8 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 			var anim=this.assets.anims[name];
 			
 			var f=frames;
-			if(frame==undefined){
-				anim.frames;
+			if(frames==undefined){
+				return anim.frames;
 			}else{
 				anim.frames=f;
 				anim.frameW=anim.img.width/f;
@@ -1941,7 +2008,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             return Math.sin(angle*Math.PI/180)
         },
 
-       //Get the angle from a direction or 2 points
+       //Get the angle from a direction or 2 points, 0 is the north and goes clockwise
         angle:function(x,y,x2,y2){
             var deltaX=-x;
             var deltaY=y;
@@ -2293,10 +2360,10 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             if(this.checkConnected(controller)){
                 if(button==undefined){
                     for(var i=0;i<this.gamepads[controller].buttons.length;i++){
-                        this.gamepads[controller].buttons.value=0;
+                        this.gamepads[controller].buttons[i].value=0;
                     }
                 }else{
-                    if(this.   buttons[button]!=undefined){
+                    if(this.buttons[button]!=undefined){
                         button=this.buttons[button];
                     }
                     this.gamepads[controller].buttons[button].value=0;
@@ -2422,7 +2489,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
 			}
 			//keydown,keyup
 			var evt = new KeyboardEvent(evt, {'keyCode':keyCode});
-			document.dispatchEvent (evt);
+			document.dispatchEvent(evt);
 		},
         check: function(keyCode) {
             if(typeof(keyCode)=="object" && keyCode.length>0){
@@ -2469,6 +2536,9 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
             if(keyCode==undefined){
                 this.keysdown.splice(0,this.keysdown.length)
             }else{
+				if(this.keys[keyCode]!=undefined){
+					keyCode=this.keys[keyCode];
+				}
                 var found = undefined;
                 for(var i=0; i<this.keysdown.length; i++) {
                     if(this.keysdown[i].key == keyCode) {found=i;}
@@ -2655,6 +2725,16 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
         });
 
         context.canvas.src.addEventListener("mouseup", function(evt) {
+			if(document.activeElement.tagName!="INPUT"){
+				evt.preventDefault();
+				
+				
+				context.mouse.down[evt.which-1]=false;
+				context.mouse.press[evt.which-1]=false;
+			}
+        });
+		
+		context.canvas.src.addEventListener("mouseout", function(evt) {
 			if(document.activeElement.tagName!="INPUT"){
 				evt.preventDefault();
 				
@@ -3274,6 +3354,10 @@ function JT(id,w,h,fps,setupName,updateName,objName,mobileAudioSize,fullScreenBt
         return this.draw.font(fontName,fontSize,color)
     }
 	
+	this.align=function(align){
+        return this.draw.align(align)
+    }
+	
 	this.baseline=function(baseline){
         return this.draw.baseline(baseline)
     }
@@ -3875,10 +3959,10 @@ TEMPLATE:
     <body>
         <div id="canContainer">
         <canvas id="can"></canvas>
-        <span>Made with <a href="https://github.com/ToniestTony/jt_lib">jt_lib14.js</a></span>
+        <span>Made with <a href="https://github.com/ToniestTony/jt_lib">jt_lib15.js</a></span>
             </div>
     </body>
-    <script src="jt_lib14.js"></script>
+    <script src="jt_lib15.js"></script>
     
     <script>
 
