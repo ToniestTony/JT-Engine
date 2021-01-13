@@ -7,6 +7,11 @@ function Object(x,y,w,h,c,r,attr,cam,v,tags){
 	this.r=r;
 	this.attr=attr;
 	this.name="Obj"+view.objects.length;
+	var cpt=1;
+	while(view.getOrder(this.name)!=-1){
+		this.name="Obj"+(view.objects.length+cpt);
+		cpt++;
+	}
 	this.alpha=1;
 	
 	this.cam=cam;
@@ -64,8 +69,8 @@ function openFile(e){
 }
 
 var app={
-	version:"1.1",
-	changes:["-Added quick save (No assets)","-Pasted objects are in order","-Fix editor, text fields,","resolution, views and window"],
+	version:"1.2",
+	changes:["-You can set the Background","in color picker","-Fixed deselecting objects","when changing views"],
 	w:0,
 	h:0,
 	fps:60,
@@ -117,10 +122,13 @@ var app={
 			this.gameLoaded=false;
 			//load
 		}
+		
+		if(this.editor==undefined){this.editorObject=undefined}
+		
 		if(this.editorLoaded && this.editorObject!=undefined){
 			this.editorLoaded=false;
 			//x,y,w,h,c,attr,cam,v
-			var obj=view.objects[app.editorObject];
+			var obj=view.objects[view.getOrder(app.editorObject)];
 			var lines=[];
 			lines.push({locked:true,text:"var obj=new JTEObject("})
 			lines.push({locked:true,text:obj.x+",//x"})
@@ -174,12 +182,13 @@ var app={
 		}
 		
 		if(this.editorObject!=undefined && this.savedCode!=undefined){
-			view.objects[this.editorObject].code=jt.copyArr(this.savedCode[0])
-			view.objects[this.editorObject].setup=jt.copyArr(this.savedCode[1])
-			view.objects[this.editorObject].update=jt.copyArr(this.savedCode[2])
-			if(view.objects[this.editorObject].code==undefined){view.objects[this.editorObject].code=jt.copyArr(defaultCode)}
-			if(view.objects[this.editorObject].setup==undefined){view.objects[this.editorObject].setup=jt.copyArr(defaultSetup)}
-			if(view.objects[this.editorObject].update==undefined){view.objects[this.editorObject].update=jt.copyArr(defaultUpdate)}
+			var order=view.getOrder(this.editorObject)
+			view.objects[order].code=jt.copyArr(this.savedCode[0])
+			view.objects[order].setup=jt.copyArr(this.savedCode[1])
+			view.objects[order].update=jt.copyArr(this.savedCode[2])
+			if(view.objects[order].code==undefined){view.objects[order].code=jt.copyArr(defaultCode)}
+			if(view.objects[order].setup==undefined){view.objects[order].setup=jt.copyArr(defaultSetup)}
+			if(view.objects[order].update==undefined){view.objects[order].update=jt.copyArr(defaultUpdate)}
 			this.savedCode=undefined;
 			//this.editorObject=undefined;
 			/*for(var i=0;i<this.savedCode.length;i++){
