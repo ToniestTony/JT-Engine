@@ -8,7 +8,7 @@ var fullPage=[`<html>
 			overflow:hidden;
 		}
             
-		#can{
+		#jeuCanvas{
 			position: absolute;
 			margin:auto;
 			top:0;
@@ -18,7 +18,7 @@ var fullPage=[`<html>
 			border:1px solid;
 		}
 	
-		#can + span{
+		#jeuCanvas + span{
 			display: none;	
 		}
 
@@ -32,12 +32,12 @@ var fullPage=[`<html>
     </head>
     <body>
 
-        <div id="canContainer"><canvas id="can"></canvas><span>Made with <a href="https://github.com/ToniestTony/jt_lib">jt_lib14.js</a></span></div>
+        <div id="canContainer"><canvas id="jeuCanvas"></canvas><span>Made with <a href="https://github.com/ToniestTony/jt_lib">jt_lib15.js</a></span></div>
         
 
     </body>
 	<script src="jquery.js"></script>
-    <script src="jt_lib14.js"></script>
+    <script src="jt_lib15.js"></script>
     
     <script>
 	`,`
@@ -74,7 +74,7 @@ var fullPage=[`<html>
 		views:`,`,
 		view:"Start",
 		
-		bg:"white",
+		bg:`,`,
 		
 		code:"",
 		
@@ -104,7 +104,7 @@ var fullPage=[`<html>
 			
 			if(this.title!=""){document.title=this.title;}
 			
-			var can=document.getElementById("can");
+			var can=document.getElementById("jeuCanvas");
 		
 			can.width=this.w*this.pR;
 			can.height=this.h*this.pR;
@@ -165,7 +165,7 @@ var fullPage=[`<html>
 		},
 		
 		//getObjects
-		getObjects:function(tags,view){
+		getObjects:function(tags,view,and){
 			var found=[];
 			if(tags==undefined){
 				if(view==undefined){
@@ -191,11 +191,32 @@ var fullPage=[`<html>
 						}
 					}
 				}else{
-					for(var i=0;i<this.objects.length;i++){
-						for(var j=0;j<this.objects[i].tags.length;j++){
-							if(this.objects[i].view==view){
-								if(tags.indexOf(this.objects[i].tags[j])!=-1){
-									found.push(this.objects[i]);
+					if(and==undefined){
+						for(var i=0;i<this.objects.length;i++){
+							for(var j=0;j<this.objects[i].tags.length;j++){
+								if(this.objects[i].view==view){
+									if(tags.indexOf(this.objects[i].tags[j])!=-1){
+										found.push(this.objects[i]);
+										break;
+									}
+								}
+							}
+						}
+					}else if(and==true){
+						for(var i=0;i<this.objects.length;i++){
+							var tag=0;
+							for(var j=0;j<this.objects[i].tags.length;j++){
+								if(this.objects[i].view==view){
+									if(tags.indexOf(this.objects[i].tags[j])!=-1){
+										tag++;
+										if(tag==tags.length){
+											found.push(this.objects[i]);
+											break;
+										}
+									}else{
+										break;
+									}
+								}else{
 									break;
 								}
 							}
@@ -293,7 +314,7 @@ var fullPage=[`<html>
 						var fS=jte.fontSize;
 						var font="Consolas";
 						var align="left";
-						var alwaysShow=false
+						var alwaysShow=true
 						var offset=0;
 						
 						if(obj.attr.size!=undefined){fS=obj.attr.size}
@@ -320,8 +341,10 @@ var fullPage=[`<html>
 						var w=jt.textW(t)/divider;
 						var w1=jt.textW(".")/divider;
 						var h=jt.textH(t)/divider;
+						var maxChars=Math.ceil(obj.w/w1)
+						
 						if((w<=obj.w && h<=obj.h) || alwaysShow){
-							jt.text(t,obj.x+offset,obj.y,c,align,fS,r);
+							jt.text(t,obj.x+offset,obj.y,c,align,fS,r,maxChars,fS/ratioCam);
 						}else{
 							if(h>obj.h){
 								//too small
@@ -421,21 +444,22 @@ var fullPage=[`<html>
 		//mobile audio button size (0 for none)
 		//fullScreen button on mobile
 		
-		jt=new JT("can",jte.w,jte.h,60,'setup','update','jte',0,jte.maximize);
+		jt=new JT("jeuCanvas",jte.w,jte.h,60,'setup','update','jte',0,jte.maximize);
 		
 		for(var i=0;i<loadEval.length;i++){
 			eval(loadEval[i])
 		}
 		//jt.loadImage("image.png","name")
-		//jt.loadSound("sound.wav","name")
+		//jt.loadSound("sound.mp3","name")
 		//jt.loadAnim("src.png","name",number of frames,fps);
 	}
 	
+	var path="";
 	`,`
 	
 	
 	//you can also use $(document).ready(function(){}); with jQuery
-	window.addEventListener("load",function(){
+	$(document).ready(function(){
 		if(jte.code!=undefined){
 			loadJt();
 		}else{
