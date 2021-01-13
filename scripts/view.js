@@ -4,6 +4,8 @@ var view={
 	view:"Start",
 	tabHover:-1,
 	
+	bg:"white",
+	
 	viewDefaultW:800,
 	viewDefaultH:600,
 	camDefault:{x:0,y:0,w:0,h:0},
@@ -103,6 +105,16 @@ var view={
 		}
 		return found;
 	},
+	getOrder:function(name){
+		var found=-1;
+		for(var i=0;i<this.objects.length;i++){
+			if(this.objects[i].name==name){
+				found=i;
+				break;
+			}
+		}
+		return found;
+	},
 	objectHasScript:function(id){
 		var modified=false;
 		var obj=this.objects[id];
@@ -177,6 +189,12 @@ var view={
 			}else if(jt.cRect(m,t)){
 				this.tabHover=i;
 				if(jt.mPress()){
+					for(var j=0;j<this.objects.length;j++){
+						if(this.objects[j].view==this.view || this.objects[j].view==""){
+							this.objects[j].selected=false;
+						}
+					}
+					this.selectRect=undefined;
 					this.view=this.tabs[i];
 					this.resetView();
 				}
@@ -1086,10 +1104,14 @@ var view={
 		
 		
 		//Editor
-		if(!app.dark){
-			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"white",0);
+		if(this.bg=="white"){
+			if(!app.dark){
+				jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"white",0);
+			}else{
+				jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"black",0);
+			}
 		}else{
-			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"black",0);
+			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),this.bg,0);
 		}
 		
 		jt.camactive(true);
@@ -1244,7 +1266,7 @@ var view={
 				var fS=app.fontSize;
 				var font="Consolas";
 				var align="left";
-				var alwaysShow=false
+				var alwaysShow=true
 				var offset=0;
 				
 				if(obj.attr.size!=undefined){fS=obj.attr.size}
@@ -1264,13 +1286,16 @@ var view={
 				if(align=="right"){
 					offset=obj.w;
 				}
+				alwaysShow=true
 				
 				jt.font(font,fS);
 				var w=jt.textW(t)/ratioCam;
 				var w1=jt.textW(".")/ratioCam;
 				var h=jt.textH(t)/ratioCam;
+				var maxChars=Math.ceil(obj.w/w1)
+				
 				if((w<=obj.w && h<=obj.h) || alwaysShow){
-					jt.text(t,obj.x+offset,obj.y,c,align,fS,r);
+					jt.text(t,obj.x+offset,obj.y,c,align,fS,r,maxChars,fS/ratioCam);
 				}else{
 					if(h>obj.h){
 						//too small
