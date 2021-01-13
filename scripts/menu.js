@@ -31,8 +31,8 @@ var menu={
 	repeat:false,
 	
 	showGrid:false,
-	snapGrid:false,
-	gridUnit:1,
+	snapGrid:true,
+	gridUnit:10,
 	gridAlpha:1,
 	
 	grad:undefined,
@@ -94,8 +94,10 @@ var menu={
 		this.buttons.push(new Button(jt.pX(5),jt.pY(11),jt.pX(3),jt.pY(2),"newAnim",true,"Anim","Create","n"));
 		
 		this.buttons.push(new Button(jt.pX(9),jt.pY(5),jt.pX(5),jt.pY(2),"uploadImg",false,"Upload","Create"));
-		this.buttons.push(new Button(jt.pX(14),jt.pY(9.5),jt.pX(1.5),jt.pY(2),"uploadMinus",false,"<","Create"));
-		this.buttons.push(new Button(jt.pX(24.5),jt.pY(9.5),jt.pX(1.5),jt.pY(2),"uploadPlus",false,">","Create"));
+		this.buttons.push(new Button(jt.pX(14),jt.pY(8),jt.pX(1.5),jt.pY(2),"uploadMinus",false,"<","Create"));
+		this.buttons.push(new Button(jt.pX(14),jt.pY(10),jt.pX(1.5),jt.pY(2),"uploadMinus10",false,"10<","Create"));
+		this.buttons.push(new Button(jt.pX(24.5),jt.pY(8),jt.pX(1.5),jt.pY(2),"uploadPlus",false,">","Create"));
+		this.buttons.push(new Button(jt.pX(24.5),jt.pY(10),jt.pX(1.5),jt.pY(2),"uploadPlus10",false,">10","Create"));
 		this.buttons.push(new Button(jt.pX(14),jt.pY(12.5),jt.pX(1.5),jt.pY(2),"uploadDelete",false,"Del","Create"));
 		this.buttons.push(new Button(jt.pX(22),jt.pY(4.5),jt.pX(4),jt.pY(2),"uploadToAnim",false,"To anim","Create"));
 		//sounds
@@ -115,12 +117,15 @@ var menu={
 		
 		this.buttons.push(new Button(jt.pX(60),jt.pY(5),jt.pX(6),jt.pY(2),"showGrid",true,"show Grid","Create","g","space"));
 		this.buttons.push(new Button(jt.pX(67),jt.pY(5),jt.pX(6),jt.pY(2),"snapGrid",true,"Snapping","Create","s","space"));
+		this.buttons[this.buttons.length-1].selected=true;
 		this.buttons.push(new Button(jt.pX(67),jt.pY(8),jt.pX(1.5),jt.pY(2),"unitMinus",false,"-1","Create","1","u"));
 		this.buttons.push(new Button(jt.pX(68.5),jt.pY(8),jt.pX(1),jt.pY(2),"unitMinus10",false,"10","Create","3","u"));
 		this.buttons.push(new Button(jt.pX(70.5),jt.pY(8),jt.pX(1.5),jt.pY(2),"unitPlus",false,"+1","Create","2","u"));
 		this.buttons.push(new Button(jt.pX(72),jt.pY(8),jt.pX(1),jt.pY(2),"unitPlus10",false,"10","Create","4","u"));
 		this.buttons.push(new Button(jt.pX(67),jt.pY(11),jt.pX(2.5),jt.pY(2),"alphaMinus",false,"-0.1","Create","1","a"));
 		this.buttons.push(new Button(jt.pX(70.5),jt.pY(11),jt.pX(2.5),jt.pY(2),"alphaPlus",false,"+0.1","Create","2","a"));
+		
+		this.buttons.push(new Button(jt.pX(74),jt.pY(11),jt.pX(3.5),jt.pY(2),"setBg",false,"Set Bg","Create"));
 		
 		this.buttons.push(new Button(jt.pX(1),jt.pY(5),jt.pX(10),jt.pY(8),"playTab",false,"Open game in tab","Play"));
 		this.buttons.push(new Button(jt.pX(12),jt.pY(5),jt.pX(10),jt.pY(8),"playWindow",false,"Open game in window","Play"));
@@ -335,18 +340,18 @@ var menu={
 		
 		for(var i=0;i<menu.uploadsImage.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsImage[i].type+`",
-			path:"assets/`+menu.uploadsImage[i].name+`.png",
+			path:path+"assets/`+menu.uploadsImage[i].name+`.png",
 			name:"`+menu.uploadsImage[i].name+`"}]);`;
 		}
 		for(var i=0;i<menu.uploadsAudio.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsAudio[i].type+`",
-			path:"assets/`+menu.uploadsAudio[i].name+`.wav",
+			path:path+"assets/`+menu.uploadsAudio[i].name+`.mp3",
 			name:"`+menu.uploadsAudio[i].name+`",
 			repeat:`+menu.uploadsAudio[i].repeat+`}]);`;
 		}
 		for(var i=0;i<menu.uploadsAnim.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsAnim[i].type+`",
-			path:"assets/`+menu.uploadsAnim[i].name+`.png",
+			path:path+"assets/`+menu.uploadsAnim[i].name+`.png",
 			name:"`+menu.uploadsAnim[i].name+`",
 			frames:`+menu.uploadsAnim[i].frames+`,
 			speed:`+menu.uploadsAnim[i].speed+`}]);`;
@@ -354,10 +359,13 @@ var menu={
 		
 		if(code==""){code=`undefined`;}
 		var title=document.title.substr(0,document.title.length-6);
+		var bg=view.bg;
+		if(bg=="white"){bg=[255,255,255,1]}
+		bg=`[`+bg+`]`;
 		if(script){
-			var text=fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+code+fullPage[7]+assets+fullPage[8];
+			var text=fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+bg+fullPage[7]+code+fullPage[8]+assets+fullPage[9];
 		}else{
-			var text=fullPage[0]+fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+code+fullPage[7]+assets+fullPage[8]+fullPage[9];
+			var text=fullPage[0]+fullPage[1]+view.viewDefaultW+fullPage[2]+view.viewDefaultH+fullPage[3]+title+fullPage[4]+menu.buttons[0].selected+fullPage[5]+JSON.stringify(views.views)+fullPage[6]+bg+fullPage[7]+code+fullPage[8]+assets+fullPage[9]+fullPage[10];
 		}
 		
 		var zip=new JSZip();
@@ -372,7 +380,7 @@ var menu={
 		var folder=zip.folder("assets");
 		
 		var list = [];
-		var files = ['jt_lib14.js','jquery.js'];
+		var files = ['jt_lib15.js','jquery.js'];
 		var assets = [];
 		if(!only){
 			for(var i=0;i<this.uploadsImage.length;i++){
@@ -380,7 +388,7 @@ var menu={
 			}
 			
 			for(var i=0;i<this.uploadsAudio.length;i++){
-				assets.push("assets/"+this.uploadsAudio[i].name+".wav")
+				assets.push("assets/"+this.uploadsAudio[i].name+".mp3")
 			}
 			
 			for(var i=0;i<this.uploadsAnim.length;i++){
@@ -459,6 +467,7 @@ var menu={
 			app.game["jte"].views=views.views;
 			app.game["jte"].code=menu.getCode();
 			app.game["jte"].maximize=menu.buttons[0].selected;
+			app.game["jte"].bg=view.bg;
 			app.game.document.title=menu.fields[0].text;
 			app.game.focus();
 		});
@@ -744,8 +753,14 @@ var menu={
 						}else if(this.buttons[i].action=="uploadMinus"){
 							this.uploadImageNum--;
 							if(this.uploadImageNum<0){this.uploadImageNum=0;}
+						}else if(this.buttons[i].action=="uploadMinus10"){
+							this.uploadImageNum-=10;
+							if(this.uploadImageNum<0){this.uploadImageNum=0;}
 						}else if(this.buttons[i].action=="uploadPlus"){
 							this.uploadImageNum++;
+							if(this.uploadImageNum>this.uploadsImage.length-1){this.uploadImageNum=this.uploadsImage.length-1;}
+						}else if(this.buttons[i].action=="uploadPlus10"){
+							this.uploadImageNum+=10;
 							if(this.uploadImageNum>this.uploadsImage.length-1){this.uploadImageNum=this.uploadsImage.length-1;}
 						}else if(this.buttons[i].action=="uploadToAnim"){
 							var anim={
@@ -900,7 +915,7 @@ var menu={
 								if(app.editor==undefined){
 									app.editor=window.open("editor.html","","width=1000,height=800")
 									app.editorLoaded=false;
-									app.editorObject=inspector.selected[0];
+									app.editorObject=view.objects[inspector.selected[0]].name;
 									app.editor.onbeforeunload=function(){app.editor=undefined;}
 								}else{
 									app.editor.close();
@@ -951,8 +966,16 @@ var menu={
 							var num=parseInt(this.buttons[i].action.substr(9,9));
 							if(view.tabs.indexOf(views.views[num])==-1){
 								view.addTab(views.views[num]);
-								view.view=views.views[num];
 							}
+							
+							for(var j=0;j<view.objects.length;j++){
+								if(view.objects[j].view==view.view || view.objects[j].view==""){
+									view.objects[j].selected=false;
+								}
+							}
+							view.selectRect=undefined;
+							
+							view.view=views.views[num];
 							
 						//GRID
 						}else if(this.buttons[i].action=="showGrid"){
@@ -977,7 +1000,13 @@ var menu={
 						}else if(this.buttons[i].action=="alphaPlus"){
 							this.gridAlpha=Math.round((this.gridAlpha+0.1)*10)/10;
 							if(this.gridAlpha>1){this.gridAlpha=1;}
-						
+						}else if(this.buttons[i].action=="setBg"){
+							var c=this.colors[this.colorCurr]
+							if(c[0]==255 && c[1]==255 && c[2]==255){
+								view.bg="white"
+							}else{
+								view.bg=c
+							}
 						
 						//PLAY
 						}else if(this.buttons[i].action=="playTab"){
@@ -1159,6 +1188,11 @@ var menu={
 													break;
 												}
 											}
+											if(app.editorObject===view.objects[inspector.selected[0]].name){
+												taken=true;
+												inspector.taken=inspector.takenMax;
+												inspector.nameError="editor";
+											}
 											if(taken){valid=false;}else{views.updateButtons=true;}
 										}
 										
@@ -1178,33 +1212,28 @@ var menu={
 											}
 												
 										}else if(field=="insOrder"){
-											if(app.editor==undefined){
-												//change order only if editor is closed
-												var num=parseFloat(text);
-												if(isNaN(num)){
-													num=0;
-												}
-												if(num<0){num=0;}
-												if(num>view.objects.length-1){num=view.objects.length-1;}
-												
-												if(num==inspector.selected[0]){
-													view.objects[inspector.selected[0]].order=inspector.selected[0];
-												}else{
-													var copy=JSON.parse(JSON.stringify(view.objects[inspector.selected[0]]));
-													if(num==view.objects.length-1){
-														view.objects.push(copy);
-													}else{
-														view.objects.splice(num,0,copy);
-													}
-
-													if(num<inspector.selected[0]){
-														inspector.selected[0]++;
-													}
-													view.objects.splice(inspector.selected[0],1);
-													inspector.selected[0]=num;
-												}
+											var num=parseFloat(text);
+											if(isNaN(num)){
+												num=0;
+											}
+											if(num<0){num=0;}
+											if(num>view.objects.length-1){num=view.objects.length-1;}
+											
+											if(num==inspector.selected[0]){
+												view.objects[inspector.selected[0]].order=inspector.selected[0];
 											}else{
-												inspector.closeEditor=inspector.closeEditorMax;
+												var copy=JSON.parse(JSON.stringify(view.objects[inspector.selected[0]]));
+												if(num==view.objects.length-1){
+													view.objects.push(copy);
+												}else{
+													view.objects.splice(num,0,copy);
+												}
+
+												if(num<inspector.selected[0]){
+													inspector.selected[0]++;
+												}
+												view.objects.splice(inspector.selected[0],1);
+												inspector.selected[0]=num;
 											}
 												
 										}else if(field=="insTags"){
@@ -1265,7 +1294,7 @@ var menu={
 		if(this.writing!=-1){
 			var keys=[
 			"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
-			"0","1","2","3","4","5","6","7","8","9","-","=",",",".",";",
+			"0","1","2","3","4","5","6","7","8","9","-","=",",",".",";","é",
 			"backspace","space","left","right","up","down","enter","num/"];
 			var specials=["backspace","left","right","up","down","enter"];
 			if(jt.kCheck("backspace")){
@@ -1494,7 +1523,7 @@ var menu={
 			if(this.buttons[i].tab==this.tabCurr || this.buttons[i].tab==""){
 				//exceptions
 				var show=true;
-				if((this.buttons[i].action=="newImg" || this.buttons[i].action=="uploadMinus" || this.buttons[i].action=="uploadPlus" || this.buttons[i].action=="uploadDelete" || this.buttons[i].action=="uploadToAnim") && this.uploadsImage.length==0){
+				if((this.buttons[i].action=="newImg" || this.buttons[i].action=="uploadMinus" || this.buttons[i].action=="uploadMinus10" || this.buttons[i].action=="uploadPlus" || this.buttons[i].action=="uploadPlus10" || this.buttons[i].action=="uploadDelete" || this.buttons[i].action=="uploadToAnim") && this.uploadsImage.length==0){
 					show=false;
 				}
 				if((this.buttons[i].action=="uploadAudioMinus" || this.buttons[i].action=="uploadAudioPlus" || this.buttons[i].action=="uploadAudioDelete" || this.buttons[i].action=="uploadAudioRepeat" || this.buttons[i].action=="uploadAudioPlay" || this.buttons[i].action=="uploadAudioStop") && this.uploadsAudio.length==0){
@@ -1599,38 +1628,43 @@ var menu={
 					var w=jt.textW(obj.text)/ratioCam;
 					var w1=jt.textW(".")/ratioCam;
 					var h=jt.textH(obj.text)/ratioCam;
-					if(w<=obj.w && h<=obj.h){
+					
+					if(this.fields[i].id!="insText"){
 						jt.text(obj.text,obj.x+2,obj.y+2,cText,"left");
 					}else{
-						if(h>obj.h){
-							//too small
+						if(w<=obj.w && h<=obj.h){
+							jt.text(obj.text,obj.x+2,obj.y+2,cText,"left");
 						}else{
-							if(w>obj.w){
-								if(w1>obj.w){
-									//too small
-								}else{
-									//line breaks
-									var maxLen=1;
-									for(var j=1;j<obj.text.length;j++){
-										if(w1*j>obj.w){
-											break;
-										}else{
-											maxLen=j;
+							if(h>obj.h){
+								//too small
+							}else{
+								if(w>obj.w){
+									if(w1>obj.w){
+										//too small
+									}else{
+										//line breaks
+										var maxLen=1;
+										for(var j=1;j<obj.text.length;j++){
+											if(w1*j>obj.w/ratioCam){
+												break;
+											}else{
+												maxLen=j;
+											}
 										}
-									}
-									var numLines=Math.ceil(obj.text.length/maxLen);
-									var maxLines=1;
-									for(var j=1;j<=numLines;j++){
-										if(h*j>obj.h){
-											break;
-										}else{
-											maxLines=j;
+										var numLines=Math.ceil(obj.text.length/maxLen);
+										var maxLines=1;
+										for(var j=1;j<=numLines;j++){
+											if(h*j>obj.h){
+												break;
+											}else{
+												maxLines=j;
+											}
 										}
-									}
-									//draw all lines
-									for(var j=0;j<maxLines;j++){
-										var str=obj.text.substr(j*maxLen,maxLen);
-										jt.text(str,obj.x+2,obj.y+(jt.pY(2)*j)+2,cText,"left");
+										//draw all lines
+										for(var j=0;j<maxLines;j++){
+											var str=obj.text.substr(j*maxLen,maxLen);
+											jt.text(str,obj.x+2,obj.y+(jt.pY(2)*j)+2,cText,"left");
+										}
 									}
 								}
 							}
