@@ -23,6 +23,30 @@ var views={
 				this.updateButtons=true;
 				this.offset-=jt.pY(2);
 			}
+			
+			//click to scroll
+			if(jt.mX()>jt.pX(18) && (jt.mPress() || jt.mCheck())){
+				var maxY=Math.abs(-(this.views.length-1)*jt.pY(4)+this.lastOpenedOffset)
+				if(maxY!=0){
+					var startY=jt.pY(18)
+					var totalHeight=jt.pY(100)-startY;
+					var totalBlocks=this.views.length-1
+					var maxY1=Math.abs(-(this.views.length)*jt.pY(4)+this.lastOpenedOffset)
+					var second=Math.abs((-jt.pY(2))/(maxY1-jt.pY(2)));
+					var h=totalHeight*second;
+					
+					var percent=(jt.mY()-startY)/(totalHeight);
+					
+					var finalHeight=((totalBlocks)*jt.pY(4))-this.lastOpenedOffset;
+					
+					var finalY=percent*(finalHeight);
+					
+					this.offset=-finalY;
+					
+					this.updateButtons=true;
+				}
+			}
+			
 		}
 		this.offset=jt.stay(this.offset,-(this.views.length-1)*jt.pY(4)+this.lastOpenedOffset,0)
 		
@@ -213,10 +237,15 @@ var views={
 				currOffset+=list.length*jt.pY(2);
 			}
 		}
-		
-		//scroll bar
 		var startY=jt.pY(18)
 		var totalHeight=jt.pY(100)-startY;
+		
+		//bg scroll bar
+		if(jt.mX()>=jt.pX(19) && jt.mX()<=jt.pX(20) && jt.mY()>startY){
+			jt.rect(jt.pX(19),startY,jt.pX(1),totalHeight,"darkgrey")
+		}
+		
+		//scroll bar
 		var totalBlocks=(this.views.length*2)+view.getObjects(this.views[i]).length;
 		var maxY=Math.abs(-(this.views.length-1)*jt.pY(4)+this.lastOpenedOffset)
 		var maxY1=Math.abs(-(this.views.length)*jt.pY(4)+this.lastOpenedOffset)
