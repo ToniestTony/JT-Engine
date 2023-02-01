@@ -46,6 +46,7 @@ Here is a screenshot of the code editor:
 
 The engine is mostly finished, but I would still like to add some features and make it more user-friendly.
 
+- Add an actual tutorial that explains how to use the JT Engine.
 - Faster loading time.
 - Add custom loading screen that contains a microgame.
 - Add presets packs to quickly start a new game or add advanced features.
