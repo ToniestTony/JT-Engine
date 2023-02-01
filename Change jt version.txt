@@ -1,0 +1,5 @@
+Change it in the index.html
+Change it in the jte.html
+Change it in the jte.js
+Change it in the menu.js
+Change it in the app.js

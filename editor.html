@@ -1,0 +1,192 @@
+<html>
+  <head>
+    <title>Code Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		div.CodeMirror{
+			height:90%;
+		}
+		.cm-container .CodeMirror {
+		  height: auto;
+		}
+		#editor span.readOnly{
+			color:#AAA;
+			background-color:black;
+		}
+		h1{
+			margin-bottom:10px;
+		}
+		#saved{
+			text-align:center;
+			height:0;
+		}
+		#saved span{
+			position:relative;
+			top:-50px;
+			font-size:2em;
+			background-color:black;
+		}
+		#save{
+			height:0;
+			text-align:right;
+		}
+		#save button{
+			height:30px;
+			font-size:1.5em;
+			background-color:lawngreen;
+			border:none;
+			position:relative;
+			top:-40px;
+		}
+		.inv{
+			display:none;
+		}
+		#tips{
+			margin:0;
+			font-size:0.75em;
+		}
+	</style>
+  </head>
+  <body class="bg">
+  
+  <h1>Code editor</h1>
+  <div id="saved" class="inv"><span>Saved!</span></div>
+  <div id="save"><button onclick="save()">Save</button></div>
+	<div id="editor"></div>
+	<p id="tips">Ctrl-S to save (saves each minute) | Ctrl-Space to autocomplete</p>
+  </body>
+	<script src="jquery.js"></script>
+	<script src="lib/codemirror.js"></script>
+	<link rel="stylesheet" href="lib/codemirror.css">
+	<link rel="stylesheet" href="css/general.css">
+	<link rel="stylesheet" href="lib/theme/monokai.css">
+	<link rel="stylesheet" href="lib/addon/hint/show-hint.css">
+	<link rel="stylesheet" href="lib/addon/dialog/dialog.css">
+	<script src="lib/mode/javascript/javascript.js"></script>
+	<script src="lib/addon/hint/show-hint.js"></script>
+	<script src="lib/addon/hint/javascript-hint.js"></script>
+	<script src="lib/addon/search/search.js"></script>
+	<script src="lib/addon/search/searchcursor.js"></script>
+	<script src="lib/addon/search/jump-to-line.js"></script>
+	<script src="lib/addon/dialog/dialog.js"></script>
+  <script>
+	var myCodeMirror = CodeMirror(document.getElementById("editor"), {
+	  value: "//If there's nothing, wait or close and reload",
+	  mode:  {name:"javascript",globalVars:true},
+	  extraKeys: {"Ctrl-Space": "autocomplete"},
+	  lineNumbers:true,
+	  theme:"monokai",
+	  autohint:true,
+	  tabSize:2,
+	  viewportMargin:10,
+	  keyMap:{
+		"Ctrl-D":function(cm){
+			var current_cursor = cm.doc.getCursor();
+			var line_content = cm.doc.getLine(current_cursor.line);
+			CodeMirror.commands.goLineEnd(cm);
+			CodeMirror.commands.newlineAndIndent(cm);
+			CodeMirror.commands.goLineLeft(cm);
+			cm.doc.replaceSelection(line_content);
+			cm.doc.setCursor(current_cursor.line + 1, current_cursor.ch);
+		},
+		fallthrough:['default']
+	  },
+	  
+	});
+	
+	var locked=[];
+	
+	function addToEditor(lines){
+		var t='';
+		locked=[];
+		for(var i=0;i<lines.length;i++){
+			var text=lines[i].text;
+			if(i==lines.length-1){
+				t+=text;
+			}else{
+				t+=text+'\n';
+			}
+			if(lines[i].locked){
+				locked.push(i);
+			}
+		}
+		
+		myCodeMirror.setValue(t);
+		
+		for(var i=0;i<locked.length;i++){
+				if(i==locked.length-1){
+					myCodeMirror.markText(
+						{line:locked[i],ch:0},
+						{line:locked[i],ch:99},
+						Object.freeze({ readOnly: true, className: "readOnly" })
+					);
+				}else{
+					myCodeMirror.markText(
+						{line:locked[i],ch:0},
+						{line:locked[i]+1,ch:0},
+						Object.freeze({ readOnly: true, className: "readOnly" })
+					);
+				}
+		}
+	}
+	
+	
+	
+	function save(){
+		//save to jt engine
+		var str=myCodeMirror.getValue();
+		str=str.replace(String.fromCharCode(160),String.fromCharCode(32));
+		var arr=str.split("\n");
+		var lockedFlags=[");//End of attributes declaration","obj.setup=function(){","obj.update=function(){","jte.objects.push(obj);"];
+		var currFlag=-1;
+		var saved=[];
+		for(var i=0;i<arr.length;i++){
+			var line=arr[i];
+			
+			if(currFlag>=0){
+				saved[currFlag].push(line);
+			}
+			if(lockedFlags.indexOf(line)!=-1){
+				currFlag++;
+				saved.push([]);
+				if(currFlag>0){
+					saved[currFlag-1].splice(saved[currFlag-1].length-1,1);
+					saved[currFlag-1].splice(saved[currFlag-1].length-1,1);
+				}
+			}
+			
+		}
+		saved.splice(saved.length-1,1);
+		window.opener["app"].savedCode=saved;
+		
+		$("#saved").removeClass("inv");
+		$("#saved").fadeIn(5);
+		$("#saved").fadeOut(1000,function(){$("#saved").addClass("inv")});
+	}
+	
+	setInterval(save,60000);
+	
+	var ctrl=false;
+	
+	document.addEventListener("keydown",function(e){
+		if(e.keyCode=="17"){
+			ctrl=true;
+		}
+		if(e.keyCode=="83" && ctrl){
+			e.preventDefault();
+			ctrl=false;
+			save();
+		}
+	})
+	
+	document.addEventListener("keyup",function(e){
+		if(e.keyCode=="17"){
+			ctrl=false;
+		}
+	})
+	
+	window.onload = function(){
+		window.opener["app"].editorLoaded=true;
+	}
+  </script>
+</html>
