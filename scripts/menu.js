@@ -206,8 +206,11 @@ var menu={
 		this.buttons.push(new Button(jt.pX(56),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadScript",false,"Download game (JS)","Play"));
 		this.buttons.push(new Button(jt.pX(67),jt.pY(5),jt.pX(10),jt.pY(8),"playLib",false,"Download JT library","Play"));
 		
-		this.buttons.push(new Button(jt.pX(85),jt.pY(5),jt.pX(10),jt.pY(3.75),"playExport",false,"Export objects","Play"));
-		this.buttons.push(new Button(jt.pX(85),jt.pY(9.25),jt.pX(10),jt.pY(3.75),"playImport",false,"Import objects","Play"));
+		this.buttons.push(new Button(jt.pX(85),jt.pY(5),jt.pX(7),jt.pY(3.75),"playExport",false,"Export all","Play"));
+		this.buttons.push(new Button(jt.pX(85),jt.pY(9.25),jt.pX(7),jt.pY(3.75),"playImport",false,"Import all","Play"));
+		this.buttons.push(new Button(jt.pX(92.5),jt.pY(5),jt.pX(7),jt.pY(3.75),"playExportSel",false,"Export selected","Play"));
+		this.buttons.push(new Button(jt.pX(92.5),jt.pY(9.25),jt.pX(7),jt.pY(3.75),"playImportView",false,"Import in view","Play"));
+
 
 		this.grad=jt.canvas.ctx.createLinearGradient(0,jt.pY(5),0,jt.pY(9+5));
 		this.grad.addColorStop(0, 'rgba(255, 0, 0, 1)');
@@ -611,7 +614,13 @@ var menu={
 		//app.editorObject=inspector.selected[0];
 		//app.game.onbeforeunload=function(){app.game=undefined;}
 	},
-	exportObjects:function(){
+	exportAll:true,
+	exportObjects:function(all){
+		var all=all;
+		if(all==undefined){
+			all=true;
+		}
+		this.exportAll=all;
 		var sorted=view.objects.map(function(obj,id){
 			obj.id=id;
 			return obj;
@@ -630,11 +639,17 @@ var menu={
 		  }
 		});
 		
-		var sorted=view.objects.map(function(obj){
+		var sorted=view.objects.filter(function(obj){
+			if(window["menu"].exportAll || (!window["menu"].exportAll && obj.selected)){
+				return true;
+			}else{
+				return false;
+			}
+		}).map(function(obj){
 			if(obj.last){
 				obj.last=obj.id;
 			}else{
-				obj.last=-1;
+				obj.last=false;
 			}
 			return obj;
 		})
@@ -646,7 +661,13 @@ var menu={
 		  console.error('Async: Could not copy text: ', err);
 		});
 	},
-	importObjects:function(){
+	importCurrView:false,
+	importObjects:function(currView){
+		var currView=currView;
+		if(currView==undefined){
+			currView=false;
+		}
+		this.importCurrView=currView;
 		menu.log="";
 		navigator.clipboard.readText()
 			.then(text => {
@@ -656,6 +677,7 @@ var menu={
 
 			//view.resetView();
 			for(var i=0;i<objects.length;i++){
+				var newView="";
 				menu.log="Importing object "+i+"/"+objects.length;
 				var o=objects[i];
 				menu.log="Changing default font "+i+"/"+objects.length;
@@ -666,34 +688,58 @@ var menu={
 						}
 					}
 				}
-				menu.log="Getting attr "+i+"/"+objects.length;
 				
+				
+				//Change or create new view
+				if(o.view!=""){
+					if(window["menu"].importCurrView){
+						o.view=window["view"].view;
+					}else{
+						if(window["views"].views.indexOf(o.view)==-1){
+							window["views"].views.push(o.view);
+							window["view"].view=o.view;
+							window["view"].addTab(o.view);
+							window["view"].resetView();
+						}
+					}
+				}
+					
+				menu.log="Getting attr "+i+"/"+objects.length;
 				if(o.last==undefined){
 					//compatibility
-					menu.log="Importing code and other attr "+i+"/"+objects.length;
+					menu.log="Importing code and other attr "+i+"/"+objects.length+" ("+o.name+")";
 					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
-					view.objects[view.objects.length-1].code=o.JTEcode;
-					view.objects[view.objects.length-1].setup=o.JTEsetup;
-					view.objects[view.objects.length-1].update=o.JTEupdate;
+					view.objects[view.objects.length-1].code=o.code;
+					view.objects[view.objects.length-1].setup=o.setup;
+					view.objects[view.objects.length-1].update=o.update;
 					view.objects[view.objects.length-1].alpha=o.alpha;
 					view.objects[view.objects.length-1].name=o.name;
 					view.objects[view.objects.length-1].last=false;
 					
-				}else if(o.last==-1){
-					menu.log="Importing code and other attr "+i+"/"+objects.length;
+				}else if(o.last==false){
+					menu.log="Importing code and other attr "+i+"/"+objects.length+" ("+o.name+")";
 					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
-					view.objects[view.objects.length-1].code=o.JTEcode;
-					view.objects[view.objects.length-1].setup=o.JTEsetup;
-					view.objects[view.objects.length-1].update=o.JTEupdate;
+					view.objects[view.objects.length-1].code=o.code;
+					view.objects[view.objects.length-1].setup=o.setup;
+					view.objects[view.objects.length-1].update=o.update;
+					view.objects[view.objects.length-1].alpha=o.alpha;
+					view.objects[view.objects.length-1].name=o.name;
+					view.objects[view.objects.length-1].last=false;
+				}else if(o.last==-1){
+					menu.log="Importing code and other attr "+i+"/"+objects.length+" ("+o.name+")";
+					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
+					view.objects[view.objects.length-1].code=o.code;
+					view.objects[view.objects.length-1].setup=o.setup;
+					view.objects[view.objects.length-1].update=o.update;
 					view.objects[view.objects.length-1].alpha=o.alpha;
 					view.objects[view.objects.length-1].name=o.name;
 					view.objects[view.objects.length-1].last=false;
 				}else{
-					menu.log="Importing code and other attr for last "+i+"/"+objects.length;
+					menu.log="Importing code and other attr for last "+i+"/"+objects.length+" ("+o.name+")";
 					view.objects.splice(o.last,0,new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
-					view.objects[o.last].code=o.JTEcode;
-					view.objects[o.last].setup=o.JTEsetup;
-					view.objects[o.last].update=o.JTEupdate;
+					view.objects[o.last].code=o.code;
+					view.objects[o.last].setup=o.setup;
+					view.objects[o.last].update=o.update;
 					view.objects[o.last].alpha=o.alpha;
 					view.objects[o.last].name=o.name;
 					view.objects[o.last].last=true;
@@ -792,7 +838,7 @@ var menu={
 				
 				if(o.last==undefined){
 					//compatibility
-					menu.log="Importing code and other attr "+i+"/"+jte.objects.length;
+					menu.log="Importing code and other attr "+i+"/"+jte.objects.length+" ("+o.name+")";
 					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
 					view.objects[view.objects.length-1].code=o.JTEcode;
 					view.objects[view.objects.length-1].setup=o.JTEsetup;
@@ -801,8 +847,17 @@ var menu={
 					view.objects[view.objects.length-1].name=o.name;
 					view.objects[view.objects.length-1].last=false;
 					
+				}else if(o.last==false){
+					menu.log="Importing code and other attr "+i+"/"+jte.objects.length+" ("+o.name+")";
+					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
+					view.objects[view.objects.length-1].code=o.JTEcode;
+					view.objects[view.objects.length-1].setup=o.JTEsetup;
+					view.objects[view.objects.length-1].update=o.JTEupdate;
+					view.objects[view.objects.length-1].alpha=o.alpha;
+					view.objects[view.objects.length-1].name=o.name;
+					view.objects[view.objects.length-1].last=false;
 				}else if(o.last==-1){
-					menu.log="Importing code and other attr "+i+"/"+jte.objects.length;
+					menu.log="Importing code and other attr "+i+"/"+jte.objects.length+" ("+o.name+")";
 					view.objects.push(new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
 					view.objects[view.objects.length-1].code=o.JTEcode;
 					view.objects[view.objects.length-1].setup=o.JTEsetup;
@@ -811,7 +866,7 @@ var menu={
 					view.objects[view.objects.length-1].name=o.name;
 					view.objects[view.objects.length-1].last=false;
 				}else{
-					menu.log="Importing code and other attr "+i+"/"+jte.objects.length;
+					menu.log="Importing code and other attr "+i+"/"+jte.objects.length+" ("+o.name+")";
 					view.objects.splice(o.last,0,new Object(o.x,o.y,o.w,o.h,o.c,o.r,o.attr,o.cam,o.view,o.tags,o.locked));
 					view.objects[o.last].code=o.JTEcode;
 					view.objects[o.last].setup=o.JTEsetup;
@@ -827,7 +882,7 @@ var menu={
 			for(var i=0;i<loadEval.length;i++){
 				menu.log="Loading assets "+i+"/"+loadEval.length;
 				var load=loadEval[i];
-				console.log(load)
+				//console.log(load)
 				if(load.substr(0,11)=="jt.loadAnim"){
 					var name=load.split(",")[1];
 					name=name.substr(1,name.length-2);
@@ -1537,9 +1592,13 @@ var menu={
 						}else if(this.buttons[i].action=="playLib"){
 							this.downloadLib();
 						}else if(this.buttons[i].action=="playExport"){
-							this.exportObjects();
+							this.exportObjects(true);
 						}else if(this.buttons[i].action=="playImport"){
-							this.importObjects();
+							this.importObjects(false);
+						}else if(this.buttons[i].action=="playExportSel"){
+							this.exportObjects(false);
+						}else if(this.buttons[i].action=="playImportView"){
+							this.importObjects(true);
 						}
 
 					}

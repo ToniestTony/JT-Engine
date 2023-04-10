@@ -3841,13 +3841,13 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 		floor:function(num,digits){
       if(digits==undefined){digits=0;}
 			var mult=Math.pow(10,digits);
-			return Math.floor((num+Number.EPSILON)*mult)/mult;
+			return Math.floor((num)*mult)/mult;
 		},
 
 		ceil:function(num,digits){
       if(digits==undefined){digits=0;}
 			var mult=Math.pow(10,digits);
-			return Math.ceil((num+Number.EPSILON)*mult)/mult;
+			return Math.ceil((num)*mult)/mult;
 		},
 
 		abs:function(num){

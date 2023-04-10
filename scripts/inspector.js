@@ -686,7 +686,11 @@ var inspector={
 			}
 		}else{
 			if(menu.uploadsImage.length==0){
-				jt.text("Upload an image",jt.pX(90),jt.pY(30),cText,"center");
+				if(this.bgBlack){
+					jt.text("Upload an image",jt.pX(90),jt.pY(30),cBg,"center");
+				}else{
+					jt.text("Upload an image",jt.pX(90),jt.pY(30),cText,"center");
+				}
 			}else{
 				jt.camActive(false);
 				var name=menu.uploadsImage[menu.uploadImageNum].name;
