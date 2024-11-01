@@ -460,7 +460,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
         preload: function(context,fps){
 			this.context=context;
 			this.fps=fps;
-			this.waveIterations=Math.PI*2/this.fps;
+			this.waveIterations=1/this.fps;
 			this.ios=this.context.mobile.isIOS();
 			this.startLoop();
         },
@@ -476,6 +476,11 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 			this.context.keyboard.keysName=this.context.math.arr(255,"undefined");
 			for(var key in this.context.keyboard.keys){
 				this.context.keyboard.keysName[this.context.keyboard.keys[key]]=key;
+			}
+			
+			this.context.gamepad.buttonsName=this.context.math.arr(17,"undefined");
+			for(var key in this.context.gamepad.buttons){
+				this.context.gamepad.buttonsName[this.context.gamepad.buttons[key]]=key;
 			}
 
             this.context.mouse.drawing=this.context.drawing;
@@ -543,7 +548,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
         changeLoop: function(){
             var context=this;
             clearInterval(this.interval)
-			this.waveIterations=Math.PI*2/this.fps;
+			this.waveIterations=1/this.fps;
             this.interval=setInterval(context.doLoop,1000/this.fps,context)
         },
 		//loading screen
@@ -799,6 +804,23 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					}
 				}
 				
+				//remove mouse scroll
+                if(this.context.mouse.scroll!=0){
+                    this.context.mouse.scroll=0;
+                }
+
+                //remove mouse press
+				this.context.mouse.press=[false,false,false,false,false]
+
+				//remove touch press
+                if(this.context.touch.press==true){
+                    this.context.touch.press=false;
+                }
+				
+				for(var i=0;i<this.context.touch.touches.length;i++){
+					this.context.touch.touches[i].down++;
+				}
+				
 				//Draw f11 to quit fullscreen
 				if(this.isAlarm("jt_fullscreen")){
 					var time=this.getAlarm("jt_fullscreen")
@@ -1031,26 +1053,12 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
                     }
                 }
 
-
-				//remove mouse scroll
-                if(this.context.mouse.scroll!=0){
-                    this.context.mouse.scroll=0;
-                }
-
-                //remove mouse press
-				this.context.mouse.press=[false,false,false,false,false]
-
-				//remove touch press
-                if(this.context.touch.press==true){
-                    this.context.touch.press=false;
-                }
-
                 //wave
                 this.waveX+=this.waveIterations;
                 if(this.waveX>this.waveIterations*this.fps){
                     this.waveX=this.waveIterations;
                 }
-                this.waveY=Math.sin(this.waveX)
+                this.waveY=Math.sin(this.waveX*Math.PI*2)
                 this.waveYPos=(this.waveY+1)/2
 
 
@@ -1132,6 +1140,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 			}
 			this.alarms[name]={};
 			this.alarms[name].time=tim;
+			this.alarms[name].timeMax=tim;
 			this.alarms[name].pause=false;
 			this.alarms[name].del=del;
         },
@@ -1186,6 +1195,13 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 				return undefined;
 			}else{
 				return this.alarms[name].time;
+			}
+		},
+		getAlarmDuration:function(name){
+			if(this.alarms[name]==undefined){
+				return undefined;
+			}else{
+				return this.alarms[name].timeMax;
 			}
 		},
 		pauseAlarm:function(name,pause){
@@ -3746,22 +3762,11 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
         between: function(num,min,max) {return num>=min && num<=max;},
         stay: function(num,min,max) {if(num<min){num=min}if(num>max){num=max}return num},
         wrap: function(num,min,max) {
-			var done=false;
-			var cpt=0;
-			while(!done){
-				if(cpt==100){
-					break;
-				}
-				if(num<min){
-					num=max-(min-num);
-				}else if(num>max){
-					num=min+(num-max)
-				}else{
-					done=true;
-				}
-				cpt++;
-			}
-            return num
+			if(min==undefined){return num;};
+			if(max==undefined){max=min;min=0;};
+			var range=max-min;
+			var num=((((num-min)%range)+range)%range)+min;
+            return num;
         },
 		wrapIndex: function(num,min,max) {
 			var done=false;
@@ -3990,7 +3995,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 
     this.collision={
         dist: function(obj1,obj2) {return Math.sqrt(Math.pow(obj2.x-obj1.x,2) + Math.pow(obj2.y-obj1.y,2))},
-		wrap: function(num,min,max) {var done=false;var cpt=0;while(!done){if(cpt==100){break;}if(num<min){num=max-(min-num);}else if(num>max){num=min+(num-max)}else{done=true;}cpt++;}return num},
+		wrap: function(num,min,max) {if(min==undefined){return num;};if(max==undefined){max=min;min=0;};var range=max-min;var num=((((num-min)%range)+range)%range)+min;return num;},
 		angleX:function(angle){return Math.sin(angle*Math.PI/180)},
         angleY:function(angle){return -Math.cos(angle*Math.PI/180)},
         angle:function(x,y,x2,y2){var deltaX=-x;var deltaY=y;if(x2!=undefined){deltaX=(x2-x)*-1;deltaY=y2-y;}var angle=Math.atan2(deltaX,deltaY)*180/Math.PI;var degrees=this.wrap(angle-180,0,359);return degrees;},
@@ -5312,6 +5317,27 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
             return this.connected[controller];
         },
         buttonsdown:[],
+		
+		getButtons:function(controller){
+			if(controller==undefined){
+                controller=0;
+            }
+			var arr=[];
+			for(button in this.gamepads[controller].buttons){
+				if(this.gamepads[controller].buttons[button].value==1){
+					var pressed=false;
+					if(this.gamepads[controller].buttons[button].pressed<=1){
+						pressed=true;
+					}
+					arr.push({number:button,button:button,press:pressed});
+				}
+			}
+			return arr;
+		},
+		
+		buttonName:function(button){
+			return this.buttonsName[button];
+		},
 
         axes:function(axes,controller){
             if(axes==undefined){
@@ -5964,10 +5990,10 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
             if(w==undefined){w=this.canvas.w;}
             if(h==undefined){h=this.canvas.h;}
 			if(num==undefined){num=-1;}
-            var checking=this.down;
+            var pressing=false
             if(press!=undefined){
                 if(press==true){
-                    checking=this.press;
+                    pressing=true;
                 }
             }
 
@@ -5976,24 +6002,30 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
             }
 
 			var force=0;
-			if(checking){
-				for(var i=0;i<this.touches.length;i++){
-					var touch=this.touches[i];
-					var tX=touch.cX;
-					var tY=touch.cY;
-					if(cam==false){
-						tX=touch.x;
-						tY=touch.y;
-					}else{
-						var c=this.drawing.cam[this.drawing.currCam].pos;
-						if(!(touch.x>=c.x && touch.x<=c.x+c.w && touch.y>=c.y && touch.y<=c.y+c.h)){
-							continue;
-						}
+			for(var i=0;i<this.touches.length;i++){
+				var touch=this.touches[i];
+				var tX=touch.cX;
+				var tY=touch.cY;
+				if(cam==false){
+					tX=touch.x;
+					tY=touch.y;
+				}else{
+					var c=this.drawing.cam[this.drawing.currCam].pos;
+					if(!(touch.x>=c.x && touch.x<=c.x+c.w && touch.y>=c.y && touch.y<=c.y+c.h)){
+						continue;
 					}
+				}
 
-					if(tX>=x && tX<= x+w && tY>=y && tY<=y+h){
+				if(tX>=x && tX<= x+w && tY>=y && tY<=y+h){
+					//touch on
+					if(pressing){
+						if(touch.down==0){
+							force++;
+						}
+					}else{
 						force++;
 					}
+					
 				}
 			}
 			if(num==-1){
@@ -6349,6 +6381,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					touches[i]={};
 					touches[i].x=tX;
 					touches[i].y=tY;
+					touches[i].down=0;
 
           var posX=context.drawing.cam[context.drawing.currCam].pos.x;
           var posY=context.drawing.cam[context.drawing.currCam].pos.y;
@@ -6387,7 +6420,20 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 						}
 					}*/
 				}
-				context.touch.touches=touches;
+				
+				var newTouches=[];
+				
+				for(var i=0;i<touches.length;i++){
+					var found=false;
+					for(var j=0;j<context.touch.touches.length;j++){
+						if(touches[i].x==context.touch.touches[j].x && touches[i].y==context.touch.touches[j].y){
+							found=true;
+						}
+					}
+					if(!found){
+						context.touch.touches.push(touches[i]);
+					}
+				}
 
 				if(force>0){
 					context.touch.down=true;
@@ -6422,6 +6468,12 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 				var touches=[];
 
 				var force=0;
+				
+				var sameLength=true;
+				if(context.touch.touches.length!=evt.touches.length){
+					sameLength=false;
+				}
+				
 
 				for(var i=0;i<evt.touches.length;i++){
 					var touch=evt.touches[i];
@@ -6435,8 +6487,15 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					touches[i]={};
 					touches[i].x=tX;
 					touches[i].y=tY;
+					if(sameLength){
+						touches[i].down=context.touch.touches[i].down;
+					}else{
+						touches[i].down=0;
+					}
+					
+					
 
-          touches[i].cX = (tX+(camX*camW)-posX)/camW;
+		  touches[i].cX = (tX+(camX*camW)-posX)/camW;
 					touches[i].cY = (tY+(camY*camH)-posY)/camH;
 
 					/*if(context.canvas.fullscreen()){
@@ -6466,8 +6525,35 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 						}
 					}*/
 				}
-
-				context.touch.touches=touches;
+				
+				if(!sameLength){
+					
+					for(var i=0;i<context.touch.touches.length;i++){
+						var closestJ=-1;
+						var closestDist=9999;
+						for(var j=0;j<touches.length;j++){
+							var dist=context.collision.dist({x:touches[j].x,y:touches[j].y},{x:context.touch.touches[i].x,y:context.touch.touches[i].y});
+							if(dist<closestDist){
+								closestDist=dist;
+								closestJ=j;
+							}
+						}
+						if(closestJ!=-1){
+							//found index
+							touches[closestJ].down=context.touch.touches[i].down;
+							context.touch.touches[i].x=touches[closestJ].x;
+							context.touch.touches[i].y=touches[closestJ].y;
+							context.touch.touches[i].cX=touches[closestJ].cX;
+							context.touch.touches[i].cY=touches[closestJ].cY;
+						}
+					}
+					
+				}else{
+					context.touch.touches=touches;
+				}
+				
+				
+				
 
 				if(force>0){
 					context.touch.down=true;
@@ -6513,6 +6599,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					touches[i]={};
 					touches[i].x=tX;
 					touches[i].y=tY;
+					touches[i].down=0;
 
           touches[i].cX = (tX+(camX*camW)-posX)/camW;
 					touches[i].cY = (tY+(camY*camH)-posY)/camH;
@@ -6544,8 +6631,22 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 						}
 					}*/
 				}
+				
+				var newTouches=[];
+				
+				for(var i=0;i<context.touch.touches.length;i++){
+					var found=false;
+					for(var j=0;j<touches.length;j++){
+						if(context.touch.touches[i].x==touches[j].x && context.touch.touches[i].y==touches[j].y){
+							found=true;
+						}
+					}
+					if(found){
+						newTouches.push(context.touch.touches[i]);
+					}
+				}
 
-				context.touch.touches=touches;
+				context.touch.touches=newTouches;
 
 				if(force==0){
 					context.touch.down=false;
@@ -6590,6 +6691,7 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					touches[i]={};
 					touches[i].x=tX;
 					touches[i].y=tY;
+					touches[i].down=0;
 
           touches[i].cX = (tX+(camX*camW)-posX)/camW;
 					touches[i].cY = (tY+(camY*camH)-posY)/camH;
@@ -6622,7 +6724,21 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 					}
 				}
 
-				context.touch.touches=touches;
+				var newTouches=[];
+				
+				for(var i=0;i<context.touch.touches.length;i++){
+					var found=false;
+					for(var j=0;j<touches.length;j++){
+						if(context.touch.touches[i].x==touches[j].x && context.touch.touches[i].y==touches[j].y){
+							found=true;
+						}
+					}
+					if(found){
+						newTouches.push(context.touch.touches[i]);
+					}
+				}
+
+				context.touch.touches=newTouches;
 
 				if(force==0){
 					context.touch.down=false;
@@ -6771,6 +6887,22 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
     this.getAlarm=function(name){
 		return this.loop.getAlarm(name);
     }
+	
+	this.getAlarmDuration=function(name){
+		return this.loop.getAlarmDuration(name);
+	}
+	
+	this.getAlarmDur=function(name){
+		return this.loop.getAlarmDuration(name);
+	}
+	
+	this.getAlarmMax=function(name){
+		return this.loop.getAlarmDuration(name);
+	}
+	
+	this.getTimeMax=function(name){
+		return this.loop.getAlarmDuration(name);
+	}
 
 	this.alarms=function(alarms){
 		if(alarms!=undefined){
@@ -6890,29 +7022,19 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
         return this.loop.stop=bool;
     }
 
-    this.wavePi=function(num){
-        if(num==undefined){return this.loop.waveX;}
-        return this.loop.waveX=num;
-    }
-
-    this.waveTau=function(num){
-        if(num==undefined){return this.loop.waveX;}
-        return this.loop.waveX=num;
-    }
-
     this.waveX=function(num){
-        if(num==undefined){return this.loop.waveX/(this.loop.waveIterations*this.loop.fps);}
-        return this.loop.waveX=num*(this.loop.waveIterations*this.loop.fps);
+        if(num==undefined){return this.loop.waveX;}
+        return this.loop.waveX=num;
     }
 
     this.waveY=function(num){
         if(num==undefined){return this.loop.waveY;}
-        return this.loop.waveY=num;
+        return Math.sin(this.math.wrap(num,1)*Math.PI*2);
     }
 
     this.waveYPos=function(num){
         if(num==undefined){return this.loop.waveYPos;}
-        return this.loop.waveYPos=num;
+        return (Math.sin(this.math.wrap(num,1)*Math.PI*2)+1)/2
     }
 
 	this.debugging=function(bool){
@@ -8035,6 +8157,14 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
     this.pads=function(){
         return this.gamepad.gamepads;
     }
+	
+	this.buttonName=function(button){
+        return this.gamepad.buttonName(button);
+    }
+	
+	this.getButtons=function(controller){
+		return this.gamepad.getButtons(controller);
+	}
 
     this.gamepads=function(){
         return this.gamepad.gamepads;
@@ -8493,6 +8623,16 @@ function JT(id,w,h,fps,setupName,updateName,objName,fullScreenBtn,compatibility)
 
 	this.addAlarm=function(name,time){
         return this.loop.alarm(name,time);
+    }
+	
+	 this.wavePi=function(num){
+        if(num==undefined){return this.loop.waveX;}
+        return this.loop.waveX=num;
+    }
+
+    this.waveTau=function(num){
+        if(num==undefined){return this.loop.waveX;}
+        return this.loop.waveX=num;
     }
 
 	this.wrapVal=function(num,min,max){
