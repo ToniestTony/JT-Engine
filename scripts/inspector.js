@@ -88,6 +88,8 @@ var inspector={
 	
 	tileTimer:60,
 	
+	
+	
 	tileReset:function(){
 		if(menu.uploadsImage.length>0){
 			var img=jt.images()[menu.uploadsImage[menu.uploadImageNum].name];
@@ -95,6 +97,26 @@ var inspector={
 			var h=img.img.naturalHeight;
 			this.tileW=jt.floor(w/this.tileDiv);
 			this.tileH=jt.floor(h/this.tileDiv);
+		}
+	},
+	
+	imageName:"",
+	imageLastName:"",
+	
+	loadTileset:function(){
+		if(menu.uploadImageNum<menu.uploadsImage.length){
+			var name=menu.uploadsImage[menu.uploadImageNum].name;
+			if(menu.tilesets[name]!=undefined){
+				inspector.tileOffX=menu.tilesets[name].tileOffX;
+				inspector.tileOffY=menu.tilesets[name].tileOffY;
+				inspector.tileW=menu.tilesets[name].tileW;
+				inspector.tileH=menu.tilesets[name].tileH;
+				
+				var fields=["tileOffX","tileOffY","tileW","tileH"];
+				for(var i=0;i<fields.length;i++){
+					menu.getField(fields[i]).text=this[fields[i]].toString();
+				}
+			}
 		}
 	},
 	
@@ -186,6 +208,18 @@ var inspector={
 		this.gradB.addColorStop(1, 'rgba(0, 0, 0, 1)');
 	},
 	update:function(){
+		
+		this.lastImageName=this.imageName;
+		if(menu.uploadImageNum<menu.uploadsImage.length){
+			var name=menu.uploadsImage[menu.uploadImageNum].name;
+			this.imageName=name;
+		}
+		
+		
+		
+		if(this.imageName!=this.lastImageName && this.imageName!="" && menu.uploadImageNum<menu.uploadsImage.length){
+			this.loadTileset();
+		}
 
 		this.selected=[]
 		for(var i=0;i<view.objects.length;i++){
@@ -313,6 +347,20 @@ var inspector={
 						menu.getField(this.tileFields[i]).text=this[this.tileFields[i]].toString();
 					}
 					menu.getField("tileTags").text=JSON.stringify(this.tileTags);
+					
+					//Add it to tilesets
+					if(menu.tilesets[name]==undefined){
+						menu.tilesets[name]={}
+						menu.tilesets[name].tileOffX=this.tileOffX;
+						menu.tilesets[name].tileOffY=this.tileOffY;
+						menu.tilesets[name].tileW=this.tileW;
+						menu.tilesets[name].tileH=this.tileH;
+					}else{
+						menu.tilesets[name].tileOffX=this.tileOffX;
+						menu.tilesets[name].tileOffY=this.tileOffY;
+						menu.tilesets[name].tileW=this.tileW;
+						menu.tilesets[name].tileH=this.tileH;
+					}
 				}
 				
 			}
@@ -337,6 +385,9 @@ var inspector={
 			if(jt.mPress()){
 				this.tileset=!this.tileset;
 				if(this.tileset){
+					//Load tileset params
+					this.loadTileset();
+					
 					view.mouseState="";
 					view.mouseNew="";
 					var removeActions=["newRect","newText","newCircle","newEllipse","newLine","newImg","newAnim"];
