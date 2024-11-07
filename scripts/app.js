@@ -69,6 +69,12 @@ function Field(x,y,w,h,id,tab,text){
 	this.selected=false;
 }
 
+function Tileset(image,tileW,tileH){
+	this.image=image;
+	this.tileW=tileW;
+	this.tileH=tileH;
+}
+
 function macro(c){
 	return "("+c.toUpperCase()+")";
 }
@@ -78,11 +84,11 @@ function openFile(e){
 }
 
 var app={
-	version:"2.3 (JT library 21)",
-	changes:["-JT library 21",
-			 "-Exclude or only select a tag",
-			 "-You can lock multiple objects",
-			 "-Lock is now an icon"],
+	version:"2.4 (JT library 22)",
+	changes:["-JT library 22",
+			 "-Optimized objects render",
+			 "-Tileset is separated",
+			 "-Deletes operations"],
 	w:0,
 	h:0,
 	fps:60,
