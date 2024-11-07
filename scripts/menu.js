@@ -72,6 +72,8 @@ var menu={
 	maximize:false,
 	ratio:false,
 	socket:false,
+	
+	path:"",
 
 	importMenu:false,
 	importCode:"",
@@ -85,6 +87,12 @@ var menu={
 	assetsImage:[],
 	assetsAudioLoaded:0,
 	assetsAudio:[],
+	
+	tilesets:{},
+	tiles:{},
+	
+	tLayer:1000,
+	tAlpha:0.5,
 
 	setup:function(){
 		//x,y,w,h,c,action,hover,trigger,text,tab
@@ -105,6 +113,10 @@ var menu={
 		this.buttons.push(new Button(jt.pX(31),jt.pY(8.5),jt.pX(9),jt.pY(2.5),"uploadImg",false,"Upload assets","Settings"));
 		this.buttons.push(new Button(jt.pX(22),jt.pY(12),jt.pX(8.5),jt.pY(2.5),"playTab",false,"Open game (tab)","Settings"));
 		this.buttons.push(new Button(jt.pX(31),jt.pY(12),jt.pX(9),jt.pY(2.5),"playWindow",false,"Open game (window)","Settings"));
+		
+		this.buttons.push(new Button(jt.pX(57.5),jt.pY(6.5),jt.pX(7),jt.pY(2),"tilesetDelete",false,"Del tiles view","Settings"));
+		this.buttons.push(new Button(jt.pX(57.5),jt.pY(9.5),jt.pX(7),jt.pY(2),"tilesetDeleteAll",false,"Del tiles views","Settings"));
+		this.buttons.push(new Button(jt.pX(57.5),jt.pY(12.5),jt.pX(7),jt.pY(2),"tagsDeleteAll",false,"Del all tags","Settings"));
 
 		this.buttons.push(new Button(jt.pX(65.5),jt.pY(6.5),jt.pX(6),jt.pY(2),"switchViews",false,"Switch views","Settings"));
 		this.buttons.push(new Button(jt.pX(72),jt.pY(6.5),jt.pX(6),jt.pY(2),"switchTags",false,"Switch tags","Settings"));
@@ -172,15 +184,21 @@ var menu={
 		this.fields[7].text=this.colors[this.colorCurr][2].toString();
 		
 		//GRID
-		this.fields.push(new Field(jt.pX(59.75),jt.pY(8),jt.pX(2),jt.pY(2),"gridX","Create"));
-		this.fields.push(new Field(jt.pX(59.75),jt.pY(11),jt.pX(2),jt.pY(2),"gridY","Create"));
+		this.fields.push(new Field(jt.pX(59.75),jt.pY(7.5),jt.pX(2),jt.pY(2),"gridX","Create"));
+		this.fields.push(new Field(jt.pX(59.75),jt.pY(10),jt.pX(2),jt.pY(2),"gridY","Create"));
 		this.fields[8].text=this.gridX.toString();
 		this.fields[9].text=this.gridY.toString();
 		
-		this.fields.push(new Field(jt.pX(65),jt.pY(8),jt.pX(2),jt.pY(2),"gridUnit","Create"));
-		this.fields.push(new Field(jt.pX(65),jt.pY(11),jt.pX(2),jt.pY(2),"gridAlpha","Create"));
+		this.fields.push(new Field(jt.pX(65),jt.pY(7.5),jt.pX(2),jt.pY(2),"gridUnit","Create"));
+		this.fields.push(new Field(jt.pX(65),jt.pY(10),jt.pX(2),jt.pY(2),"gridAlpha","Create"));
 		this.fields[10].text=this.gridUnit.toString();
 		this.fields[11].text=this.gridAlpha.toString();
+		
+		
+		this.fields.push(new Field(jt.pX(59.75),jt.pY(12.5),jt.pX(2),jt.pY(2),"tLayer","Create"));
+		this.fields.push(new Field(jt.pX(65),jt.pY(12.5),jt.pX(2),jt.pY(2),"tAlpha","Create"));
+		this.fields[12].text=this.tLayer.toString();
+		this.fields[13].text=this.tAlpha.toString();
 		
 		//Volume
 		this.fields.push(new Field(jt.pX(31.5),jt.pY(9.5),jt.pX(2.5),jt.pY(2),"uploadVolume","Create"));
@@ -197,13 +215,24 @@ var menu={
 
 		this.buttons.push(new Button(jt.pX(71),jt.pY(12),jt.pX(3),jt.pY(2),"setBg",false,"Set Bg","Create"));
 		this.buttons.push(new Button(jt.pX(74.5),jt.pY(12),jt.pX(3),jt.pY(2),"setDefault",false,"Reset","Create"));
+		
+		//Path
+		this.fields.push(new Field(jt.pX(4),jt.pY(5),jt.pX(10),jt.pY(2),"path","Play"));
 
-		this.buttons.push(new Button(jt.pX(1),jt.pY(5),jt.pX(10),jt.pY(8),"playTab",false,"Open game in tab","Play"));
-		this.buttons.push(new Button(jt.pX(12),jt.pY(5),jt.pX(10),jt.pY(8),"playWindow",false,"Open game in window","Play"));
-		this.buttons.push(new Button(jt.pX(23),jt.pY(5),jt.pX(10),jt.pY(8),"playDownload",false,"Download game (HTML)","Play"));
-		this.buttons.push(new Button(jt.pX(34),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadCode",false,"Download code (HTML)","Play","s","ctrl"));
-		this.buttons.push(new Button(jt.pX(45),jt.pY(5),jt.pX(10),jt.pY(8),"playGetCode",false,"Copy code","Play"));
-		this.buttons.push(new Button(jt.pX(56),jt.pY(5),jt.pX(10),jt.pY(8),"playDownloadScript",false,"Download game (JS)","Play"));
+		//Open
+		this.buttons.push(new Button(jt.pX(18),jt.pY(5),jt.pX(10),jt.pY(3.75),"playTab",false,"Open game in tab","Play"));
+		this.buttons.push(new Button(jt.pX(18),jt.pY(9.25),jt.pX(10),jt.pY(3.75),"playWindow",false,"Open game in window","Play"));
+		
+		//Downloads
+		this.buttons.push(new Button(jt.pX(34),jt.pY(5),jt.pX(10),jt.pY(3.75),"playDownload",false,"Download game (HTML)","Play"));
+		this.buttons.push(new Button(jt.pX(45),jt.pY(5),jt.pX(10),jt.pY(3.75),"playDownloadCode",false,"Download code (HTML)","Play","s","ctrl"));
+		this.buttons.push(new Button(jt.pX(56),jt.pY(5),jt.pX(10),jt.pY(3.75),"playGetCode",false,"Copy code (HTML)","Play"));
+		
+		this.buttons.push(new Button(jt.pX(34),jt.pY(9.25),jt.pX(10),jt.pY(3.75),"playDownloadScript",false,"Download game (JS)","Play"));
+		this.buttons.push(new Button(jt.pX(45),jt.pY(9.25),jt.pX(10),jt.pY(3.75),"playDownloadCodeScript",false,"Download code (JS)","Play"));
+		this.buttons.push(new Button(jt.pX(56),jt.pY(9.25),jt.pX(10),jt.pY(3.75),"playGetScript",false,"Copy code (JS)","Play"));
+		
+		
 		this.buttons.push(new Button(jt.pX(67),jt.pY(5),jt.pX(10),jt.pY(8),"playLib",false,"Download JT library","Play"));
 		
 		this.buttons.push(new Button(jt.pX(85),jt.pY(5),jt.pX(7),jt.pY(3.75),"playExport",false,"Export all","Play"));
@@ -413,7 +442,7 @@ var menu={
 		return fullCode;
 	},
 	downloadLib:function(){
-		var filename="jt_lib21.js";
+		var filename="jt_lib22.js";
 
 		var element = document.createElement('a');
 		element.setAttribute('href', filename);
@@ -455,19 +484,19 @@ var menu={
 
 		for(var i=0;i<menu.uploadsImage.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsImage[i].type+`",
-			path:path+"assets/`+menu.uploadsImage[i].name+`.png",
+			path:jte.path+"assets/`+menu.uploadsImage[i].name+`.png",
 			name:"`+menu.uploadsImage[i].name+`"}]);`;
 		}
 		for(var i=0;i<menu.uploadsAudio.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsAudio[i].type+`",
-			path:path+"assets/`+menu.uploadsAudio[i].name+`.mp3",
+			path:jte.path+"assets/`+menu.uploadsAudio[i].name+`.mp3",
 			name:"`+menu.uploadsAudio[i].name+`",
 			repeat:`+menu.uploadsAudio[i].repeat+`,
 			volume:`+jt.volume(menu.uploadsAudio[i].name)+`}]);`;
 		}
 		for(var i=0;i<menu.uploadsAnim.length;i++){
 			assets+=`loadAssets([{type:"`+menu.uploadsAnim[i].type+`",
-			path:path+"assets/`+menu.uploadsAnim[i].name+`.png",
+			path:jte.path+"assets/`+menu.uploadsAnim[i].name+`.png",
 			name:"`+menu.uploadsAnim[i].name+`",
 			frames:`+menu.uploadsAnim[i].frames+`,
 			speed:`+menu.uploadsAnim[i].speed+`}]);`;
@@ -483,9 +512,69 @@ var menu={
 			scriptSocket=`<script src="/socket.io/socket.io.js"></script>`;
 		}
 		if(script){
-			var text=fullPage[2]+view.viewDefaultW+fullPage[3]+view.viewDefaultH+fullPage[4]+title+fullPage[5]+menu.buttons[0].selected+fullPage[6]+menu.buttons[1].selected+fullPage[7]+JSON.stringify(views.views)+fullPage[8]+bg+fullPage[9]+code+fullPage[10]+assets+fullPage[11];
+			var text=fullPage[2]+
+			view.viewDefaultW+
+			fullPage[3]+
+			view.viewDefaultH+
+			fullPage[4]+
+			title+
+			fullPage[5]+
+			menu.buttons[0].selected+
+			fullPage[6]+
+			menu.buttons[1].selected+
+			fullPage[7]+
+			menu.gridUnit+
+			fullPage[8]+
+			menu.fields[15].text+
+			fullPage[9]+
+			menu.tLayer+
+			fullPage[10]+
+			JSON.stringify(menu.tilesets)+
+			fullPage[11]+
+			JSON.stringify(menu.tiles)+
+			fullPage[12]+
+			JSON.stringify(views.views)+
+			fullPage[13]+
+			bg+
+			fullPage[14]+
+			code+
+			fullPage[15]+
+			assets+
+			fullPage[16];
 		}else{
-			var text=fullPage[0]+scriptSocket+fullPage[1]+fullPage[2]+view.viewDefaultW+fullPage[3]+view.viewDefaultH+fullPage[4]+title+fullPage[5]+menu.buttons[0].selected+fullPage[6]+menu.buttons[1].selected+fullPage[7]+JSON.stringify(views.views)+fullPage[8]+bg+fullPage[9]+code+fullPage[10]+assets+fullPage[11]+fullPage[12];
+			var text=fullPage[0]+
+			scriptSocket+
+			fullPage[1]+
+			fullPage[2]+
+			view.viewDefaultW+
+			fullPage[3]+
+			view.viewDefaultH+
+			fullPage[4]+
+			title+
+			fullPage[5]+
+			menu.buttons[0].selected+
+			fullPage[6]+
+			menu.buttons[1].selected+
+			fullPage[7]+
+			menu.gridUnit+
+			fullPage[8]+
+			menu.fields[15].text+
+			fullPage[9]+
+			menu.tLayer+
+			fullPage[10]+
+			JSON.stringify(menu.tilesets)+
+			fullPage[11]+
+			JSON.stringify(menu.tiles)+
+			fullPage[12]+
+			JSON.stringify(views.views)+
+			fullPage[13]+
+			bg+
+			fullPage[14]+
+			code+
+			fullPage[15]+
+			assets+
+			fullPage[16]+
+			fullPage[17];
 		}
 
 		var zip=new JSZip();
@@ -506,7 +595,7 @@ var menu={
 			var folder=zip.folder("assets");
 
 			var list = [];
-			var files = ['jt_lib21.js','jquery.js'];
+			var files = ['jt_lib22.js','jquery.js'];
 			var assetsName = [];
 			var assetsPath = [];
 			if(!only){
@@ -602,9 +691,14 @@ var menu={
 			app.game["jte"].w=view.viewDefaultW;
 			app.game["jte"].h=view.viewDefaultH;
 			app.game["jte"].views=views.views;
+			app.game["jte"].tileLayer=menu.tLayer;
+			app.game["jte"].tilesets=menu.tilesets;
+			app.game["jte"].tiles=menu.tiles;
 			app.game["jte"].code=menu.getCode();
 			app.game["jte"].maximize=menu.buttons[0].selected;
 			app.game["jte"].socket=menu.buttons[1].selected;
+			app.game["jte"].gridUnit=menu.gridUnit;
+			app.game["jte"].path=menu.fields[15].text;
 			app.game["jte"].bg=view.bg;
 			app.game.document.title=menu.fields[0].text;
 			app.game.focus();
@@ -786,6 +880,32 @@ var menu={
 			menu.fields[2].text=h.toString();
 			view.viewDefaultH=h;
 			view.setup();
+			
+			//Grid Unit
+			//path
+			if(jte.gridUnit!=undefined){
+				menu.gridUnit=parseInt(jte.gridUnit);
+				menu.fields[10].text=jte.gridUnit;
+			}
+			
+			//path
+			if(jte.path!=undefined){
+				menu.fields[15].text=jte.path;
+			}
+			
+			if(jte.tilesets!=undefined){
+				menu.tilesets=jte.tilesets;
+			}
+			
+			if(jte.tiles!=undefined){
+				menu.tiles=jte.tiles;
+			}
+			
+			if(jte.tileLayer!=undefined){
+				menu.tLayer=parseInt(jte.tileLayer);
+				menu.fields[12].text=jte.tileLayer;
+			}
+			
 
 			//title
 			menu.fields[0].text=jte.title;
@@ -1241,6 +1361,44 @@ var menu={
 							for(var j=0;j<this.uploadsAudio.length;j++){
 								jt.stop(this.uploadsAudio[j].name);
 							}
+							
+						//DELETES
+						}else if(this.buttons[i].action=="tilesetDelete"){
+							var view1=prompt("Delete tiles from view:")
+							if(views.views.indexOf(view1)!=-1 || view1==""){
+								menu.tiles[view1]=undefined;
+							}
+							views.updateButtons=true;
+							jt.mRelease();
+						}else if(this.buttons[i].action=="tilesetDeleteAll"){
+							if(prompt("Are you sure? You can't undo this")!=null){
+								for(var prop in menu.tiles){
+									menu.tiles[prop]=undefined;
+								}
+							}
+							views.updateButtons=true;
+							jt.mRelease();
+						}else if(this.buttons[i].action=="tagsDeleteAll"){
+							var tag1=prompt("Delete object with tag")
+							if(prompt("Are you sure? You can't undo this")!=null && tag1!=null){
+								var del=[];
+								for(var j=0;j<view.objects.length;j++){
+									var index=view.objects[j].tags.indexOf(tag1);
+									if(index!=-1){
+										del.push(j)
+									}
+								}
+								
+								console.log(del);
+								
+								var mod=0;
+								for(var j=0;j<del.length;j++){
+									view.objects.splice(del[j]+mod,1);
+									mod--;
+								}
+							}
+							views.updateButtons=true;
+							jt.mRelease();
 
 						//OPERATIONS
 						}else if(this.buttons[i].action=="switchViews"){
@@ -1578,8 +1736,10 @@ var menu={
 							//PLAY
 						}else if(this.buttons[i].action=="playTab"){
 							this.openGame("tab")
+							jt.mRelease();
 						}else if(this.buttons[i].action=="playWindow"){
 							this.openGame("window")
+							jt.mRelease();
 						}else if(this.buttons[i].action=="playDownload"){
 							this.downloadGame();
 						}else if(this.buttons[i].action=="playDownloadCode"){
@@ -1589,6 +1749,11 @@ var menu={
 							this.downloadGame(false,false,true);
 						}else if(this.buttons[i].action=="playDownloadScript"){
 							this.downloadGame(true);
+						}else if(this.buttons[i].action=="playDownloadCodeScript"){
+							this.downloadGame(true,true);
+							this.downloadGame(true,false,true);
+						}else if(this.buttons[i].action=="playGetScript"){
+							this.downloadGame(true,false,true);
 						}else if(this.buttons[i].action=="playLib"){
 							this.downloadLib();
 						}else if(this.buttons[i].action=="playExport"){
@@ -1769,16 +1934,46 @@ var menu={
 							num=jt.stay(num,0,256);
 							this.gridY=num;
 							this.getField(id).text=num.toString();
+						}else if(id=="tLayer"){
+							var num=parseInt(text);
+							num=jt.stay(num,0,9999);
+							this.tLayer=num;
+							this.getField(id).text=num.toString();
 						}else if(id=="gridUnit"){
 							var num=parseInt(text);
 							num=jt.stay(num,0,256);
 							this.gridUnit=num;
 							this.getField(id).text=num.toString();
+							//update gridUnit for current tilesets
+							if(this.uploadImageNum<this.uploadsImage.length){
+								var name=this.uploadsImage[this.uploadImageNum].name;
+								for(var viewsIndex in menu.tiles){
+									var currView=menu.tiles[viewsIndex];
+									//Loop through chunks
+									for(var chunkIndex in currView){
+										var tilesets=currView[chunkIndex].tilesets
+										//Loop through tilesets
+										for(var tilesetIndex in tilesets){
+											var currTileset=tilesets[tilesetIndex];
+											if(currTileset.img==name){
+												menu.tiles[viewsIndex][chunkIndex].tilesets[tilesetIndex].unit=num;
+											}
+										}
+									}
+								}
+							}
 						}else if(id=="gridAlpha"){
 							var num=parseFloat(text);
 							num=jt.stay(num,0,1);
 							this.gridAlpha=num;
 							this.getField(id).text=num.toString();
+						}else if(id=="tAlpha"){
+							var num=parseFloat(text);
+							num=jt.stay(num,0,1);
+							this.tAlpha=num;
+							this.getField(id).text=num.toString();
+						}else if(id=="path"){
+							this.path=text;
 						}else if(id.substr(0,5)=="views"){
 							//VIEWS
 							var taken=false;
@@ -2434,6 +2629,10 @@ var menu={
 								key="<";
 							}else if(key=="."){
 								key=">";
+							}else if(key=="9"){
+								key="[";
+							}else if(key=="0"){
+								key="]";
 							}
 
 						}
@@ -2858,6 +3057,10 @@ var menu={
 			for(var i=0;i<app.changes.length;i++){
 				jt.text(app.changes[i],jt.pX(41.5),jt.pY(7+(2*i)),cText,"left")
 			}
+			
+			//Tilesets
+			jt.rect(jt.pX(57),jt.pY(5),jt.pX(0.1),jt.pY(9),cText)
+			jt.text("Deletes: ",jt.pX(61),jt.pY(4.5),cText,"center");
 
 			//options
 			jt.rect(jt.pX(65),jt.pY(5),jt.pX(0.1),jt.pY(9),cText)
@@ -2937,13 +3140,16 @@ var menu={
 			jt.text("Grid: ",jt.pX(59.5),jt.pY(5),cText,"right");
 			var unit="Unit";
 			var alpha="Alpha";
-			jt.text(unit+" ",jt.pX(65),jt.pY(8.25),cText,"right");
-			jt.text("(1-256)",jt.pX(67.12),jt.pY(8.25),cText,"left");
-			jt.text(alpha+" ",jt.pX(65),jt.pY(11.25),cText,"right");
-			jt.text(" (0-1)",jt.pX(67),jt.pY(11.25),cText,"left");
+			jt.text(unit+" ",jt.pX(65),jt.pY(7.75),cText,"right");
+			jt.text("(1-256)",jt.pX(67.12),jt.pY(7.75),cText,"left");
+			jt.text(alpha+" ",jt.pX(65),jt.pY(10.25),cText,"right");
+			jt.text(" (0-1)",jt.pX(67),jt.pY(10.25),cText,"left");
 			
-			jt.text("Off X:",jt.pX(59.5),jt.pY(8.25),cText,"right");
-			jt.text("Off Y:",jt.pX(59.5),jt.pY(11.25),cText,"right");
+			jt.text("Off X:",jt.pX(59),jt.pY(7.75),cText,"right");
+			jt.text("Off Y:",jt.pX(59),jt.pY(10.25),cText,"right");
+			
+			jt.text("TLayer",jt.pX(59),jt.pY(12.75),cText,"right");
+			jt.text("TAlpha",jt.pX(65),jt.pY(12.75),cText,"right");
 
 			var c=jt.arr(this.colors.length,"black");
 			var cc=this.colors[this.colorCurr];
@@ -3007,6 +3213,15 @@ var menu={
 			jt.rectB(jt.pX(97),jt.pY(5),jt.pX(2),jt.pY(9),"black",0,1)
 		}else if(this.tabCurr=="Play"){
 			jt.font("Consolas",app.fontSize*0.75);
+			jt.text("Path: ",jt.pX(1),jt.pY(5),cText,"left");
+			jt.rect(jt.pX(14.5),jt.pY(5),jt.pX(0.1),jt.pY(9),cText)
+			
+			jt.text("Open: ",jt.pX(15),jt.pY(5),cText,"left");
+			jt.rect(jt.pX(28.5),jt.pY(5),jt.pX(0.1),jt.pY(9),cText)
+			
+			jt.text("Download: ",jt.pX(29),jt.pY(5),cText,"left");
+			jt.rect(jt.pX(77.5),jt.pY(5),jt.pX(0.1),jt.pY(9),cText)
+			
 			jt.text("Mixing games: ",jt.pX(78),jt.pY(5),cText,"left");
 		}
 
