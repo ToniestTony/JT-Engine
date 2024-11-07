@@ -255,7 +255,7 @@ var view={
 						}
 					}
 					this.tabs.splice(i,1);
-
+					jt.mRelease();
 				}
 			}else if(jt.cRect(m,t)){
 				this.tabHover=i;
@@ -269,6 +269,7 @@ var view={
 					views.saveViewCam();
 					this.view=this.tabs[i];
 					this.resetView(this.view);
+					jt.mRelease();
 				}
 			}
 
@@ -645,14 +646,27 @@ var view={
 								x=jt.floor(x/menu.gridUnit)*menu.gridUnit+menu.gridX;
 								y=jt.floor(y/menu.gridUnit)*menu.gridUnit+menu.gridY;
 							}
-							var sX=inspector.tileX*inspector.tileW;
-							var sY=inspector.tileY*inspector.tileH;
+							var sX=inspector.tileX*inspector.tileW+inspector.tileOffX;
+							var sY=inspector.tileY*inspector.tileH+inspector.tileOffY;
 							var sW=inspector.tileW;
 							var sH=inspector.tileH;
 							
-							var valid=true;
-							var del=[];
+							var tX=inspector.tileX;
+							var tY=inspector.tileY;
 							
+							var valid=true;
+							
+							var del=[];
+							var add=[];
+							
+							var ww=view.viewDefaultW;
+							var hh=view.viewDefaultH;
+							
+							var chunkX=Math.floor(x/ww)*ww;
+							var chunkY=Math.floor(y/hh)*hh;
+							
+							/*
+							//Check objects and add them to delete arr
 							for(var i=0;i<this.objects.length;i++){
 								if(x==this.objects[i].x && y==this.objects[i].y){
 									if(w==this.objects[i].w && h==this.objects[i].h){
@@ -676,11 +690,110 @@ var view={
 									}else{continue;}
 								}else{continue;}
 							}
+							*/
 							
 							if(jt.mCheck(0,0,jt.w(),jt.h(),false,2)){
 								valid=false;
 							}
 							
+							//Delete tiles
+							if(menu.tiles[this.view]!=undefined && !valid){
+								if(menu.tiles[this.view].length>0){
+									//All chunks for now
+									var arrXY=[];
+									/*
+									for(var yy=0;yy<inspector.tileSize;yy++){
+										for(var xx=0;xx<inspector.tileSize;xx++){
+											arrXY.push([x+(xx*menu.gridUnit),y+(yy*menu.gridUnit)]);
+										}
+									}
+									*/
+									arrXY.push([x,y]);
+									
+									for(var chunkIndex in menu.tiles[this.view]){
+										var tilesets=menu.tiles[this.view][chunkIndex].tilesets;
+										for(var tilesetIndex in tilesets){
+											var tiles=tilesets[tilesetIndex].tiles;
+											for(var tileIndex in tiles){
+												var tile=tiles[tileIndex];
+												for(var arrXYIndex in arrXY){
+													var xy=arrXY[arrXYIndex];
+													if(tile[0]==xy[0] && tile[1]==xy[1]){
+														//remove that tile
+														del.push({x:xy[0],y:xy[1],tX:tile[2],tY:tile[3],img:tilesets[tilesetIndex].img,chunkIndex:chunkIndex,tilesetIndex:tilesetIndex,tileIndex:parseInt(tileIndex)})
+														break;
+													}
+												}
+											}
+										}
+									}
+								}
+								
+								if(del.length>0){
+								
+									var arr=[];
+
+									for(var i=0;i<del.length;i++){
+										var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+										data.x=del[i].x;
+										data.y=del[i].y;
+										data.tX=del[i].tX;
+										data.tY=del[i].tY;
+										data.img=del[i].img;
+										arr.push(data);
+									}
+
+									this.actionsCurr[this.view]++;
+									this.actions[this.view].splice(this.actionsCurr[this.view]);
+									this.actions[this.view].push({
+										action:"deleteTiles",
+										objects:arr
+									})
+									
+									
+									//Then delete tiles
+									var tileMod=0;
+									for(var i=0;i<del.length;i++){
+										var d=del[i];
+										console.log(menu.tiles[this.view][d.chunkIndex].tilesets[d.tilesetIndex].tiles.length);
+										menu.tiles[this.view][d.chunkIndex].tilesets[d.tilesetIndex].tiles.splice(d.tileIndex+tileMod,1);
+										console.log(menu.tiles[this.view][d.chunkIndex].tilesets[d.tilesetIndex].tiles.length);
+										tileMod--;
+									}
+									
+									
+									
+									views.updateButtons=true;
+								}
+							}
+							/*
+							for(var i=0;i<this.objects.length;i++){
+								if(x==this.objects[i].x && y==this.objects[i].y){
+									if(w==this.objects[i].w && h==this.objects[i].h){
+										if(this.objects[i].attr!=undefined){
+											if(this.objects[i].attr.img!=undefined){
+												if(jt.mCheck(0,0,jt.w(),jt.h(),false,2)){
+													//right click
+													valid=false;
+													del.push(i);
+												}else{
+													var o=this.objects[i];
+													if(o.attr.img==img && o.attr.sX==sX && o.attr.sY==sY &&o.attr.sW==sW &&o.attr.sH==sH){
+														valid=false;
+														break;
+													}
+													
+													del.push(i);
+												}
+											}else{continue;}
+										}else{continue;}
+									}else{continue;}
+								}else{continue;}
+							}
+							*/
+							
+							/*
+							//Delete del array
 							if(del.length>0){
 								var arr=[];
 
@@ -719,7 +832,10 @@ var view={
 								}
 								views.updateButtons=true;
 							}
+							*/
 							
+							/*
+							//Add tiles
 							if(valid){
 								var objectsView=this.objects.length;
 								attr={};
@@ -761,8 +877,170 @@ var view={
 								})
 								views.updateButtons=true;
 							}
+							*/
+							
+							//Adding tiles
+							if(valid){
+								if(menu.tiles[this.view]==undefined){
+									menu.tiles[this.view]=[];
+								}
+								
+								var foundChunkIndex=-1;
+								var addChunk=false;
+								
+								if(menu.tiles[this.view].length>0){
+									//Find chunk
+									for(var chunkIndex in menu.tiles[this.view]){
+										var chunk=menu.tiles[this.view][chunkIndex];
+										if(chunk.x==chunkX && chunk.y==chunkY){
+											foundChunkIndex=chunkIndex;
+											break;
+										}
+									}
+									if(foundChunkIndex==-1){
+										addChunk=true;
+									}
+								}else{
+									addChunk=true;
+								}
+								
+								if(addChunk){
+									var tilesets={img:img,unit:menu.gridUnit,tiles:[]};
+									menu.tiles[this.view].push({x:chunkX,y:chunkY,tilesets:[]});
+									foundChunkIndex=menu.tiles[this.view].length-1;
+									menu.tiles[this.view][foundChunkIndex].tilesets.push(tilesets);
+								}
+								
+								if(foundChunkIndex!=-1){
+									var chunk=menu.tiles[this.view][foundChunkIndex];
+									
+									//Now find tileset
+									var foundTilesetIndex=-1;
+									var tilesets=chunk.tilesets;
+									for(var tilesetIndex in tilesets){
+										if(tilesets[tilesetIndex].img==img){
+											foundTilesetIndex=tilesetIndex;
+											break;
+										}
+									}
+									
+									if(foundTilesetIndex==-1){
+										//create tileset
+										chunk.tilesets.push({img:img,unit:menu.gridUnit,tiles:[]})
+										foundTilesetIndex=chunk.tilesets.length-1;
+									}
+									
+									if(foundTilesetIndex!=-1){
+										//Add all positions of inspector.tileSize
+										
+										var arrXY=[];
+										/*
+										for(var yy=0;yy<inspector.tileSize;yy++){
+											for(var xx=0;xx<inspector.tileSize;xx++){
+												arrXY.push([x+(xx*menu.gridUnit),y+(yy*menu.gridUnit)]);
+											}
+										}
+										*/
+										arrXY.push([x,y])
+										
+										var del=[];
+										
+										var add=[];
+										
+										var same=false;
+										
+										for(var arrXYIndex in arrXY){
+											var xy=arrXY[arrXYIndex];
+											
+											var img=menu.tiles[this.view][foundChunkIndex].tilesets[foundTilesetIndex].img;
+											
+											//Check if already exists in another tileset and replace it
+											var currChunkTilesets=menu.tiles[this.view][foundChunkIndex].tilesets;
+											for(var chunkTilesetsIndex in currChunkTilesets){
+												var chunkTileset=currChunkTilesets[chunkTilesetsIndex];
+												var currTiles=chunkTileset.tiles;
+												for(var tilesIndex in currTiles){
+													if(currTiles[tilesIndex][0]==xy[0] && currTiles[tilesIndex][1]==xy[1]){
+														//remove that tile
+														var tile=currTiles[tilesIndex];
+														if(chunkTileset.img==img && tile[0]==xy[0] && tile[1]==xy[1] && tile[2]==tX && tile[3]==tY){
+															same=true;
+															break;
+														}
+														del.push({x:tile[0],y:tile[1],tX:tile[2],tY:tile[3],img:chunkTileset.img,chunkIndex:foundChunkIndex,tilesetIndex:chunkTilesetsIndex,tileIndex:tilesIndex})
+														break;
+													}
+												}
+											}
+											
+											//Add to current tileset's tiles
+											if(!same){
+												menu.tiles[this.view][foundChunkIndex].tilesets[foundTilesetIndex].tiles.push([xy[0],xy[1],tX,tY]);
+												var tileIndex=menu.tiles[this.view][foundChunkIndex].tilesets[foundTilesetIndex].tiles.length-1;
+												add.push({x:xy[0],y:xy[1],tX:tX,tY:tY,img:img,chunkIndex:foundChunkIndex,tilesetIndex:foundTilesetIndex,tileIndex:tileIndex})
+											}
+										}
+				
+										
+										if(del.length>0){
+											var arr=[];
+
+											for(var i=0;i<del.length;i++){
+												var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+												data.x=del[i].x;
+												data.y=del[i].y;
+												data.tX=del[i].tX;
+												data.tY=del[i].tY;
+												data.img=del[i].img;
+												arr.push(data);
+											}
+
+											this.actionsCurr[this.view]++;
+											this.actions[this.view].splice(this.actionsCurr[this.view]);
+											this.actions[this.view].push({
+												action:"deleteTiles",
+												objects:arr
+											})
+											
+											
+											//Then delete tiles
+											for(var i=0;i<del.length;i++){
+												var d=del[i];
+												menu.tiles[this.view][d.chunkIndex].tilesets[d.tilesetIndex].tiles.splice(d.tileIndex,1);
+											}
+											
+											views.updateButtons=true;
+										}
+										
+										
+										if(add.length>0){
+											var arr=[];
+
+											for(var i=0;i<add.length;i++){
+												var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+												data.x=add[i].x;
+												data.y=add[i].y;
+												data.tX=add[i].tX;
+												data.tY=add[i].tY;
+												data.img=add[i].img;
+												arr.push(data);
+											}
+
+											this.actionsCurr[this.view]++;
+											this.actions[this.view].splice(this.actionsCurr[this.view]);
+											this.actions[this.view].push({
+												action:"createTiles",
+												objects:arr
+											})
+											
+											views.updateButtons=true;
+										}
+									}
+								}
+							}
 						}
 					}
+					//Do the actions after the fors
 				}
 			}
 		}
@@ -1444,6 +1722,51 @@ var view={
 							index--;
 						}
 
+					}else if(action.action=="createTiles"){
+						views.updateButtons=true;
+						for(var i=0;i<action.objects.length;i++){
+							var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+							data.x=action.objects[i].x;
+							data.y=action.objects[i].y;
+							data.tX=action.objects[i].tX;
+							data.tY=action.objects[i].tY;
+							data.img=action.objects[i].img;
+							data.view=action.objects[i].view;
+							
+							var ww=view.viewDefaultW;
+							var hh=view.viewDefaultH;
+							
+							var chunkX=Math.floor(data.x/ww)*ww;
+							var chunkY=Math.floor(data.y/hh)*hh;
+							
+							var found=false;
+							
+							var chunks=menu.tiles[data.view];
+							for(var chunkIndex in chunks){
+								var chunk=chunks[chunkIndex];
+								if(chunk.x==chunkX && chunk.y==chunkY){
+									var tilesets=chunk.tilesets
+									for(var tilesetIndex in tilesets){
+										var tileset=tilesets[tilesetIndex];
+										if(tileset.img==data.img){
+											//delete tile
+											for(var tileIndex in tileset.tiles){
+												var tile=tileset.tiles[tileIndex];
+												if(tile[0]==data.x && tile[1]==data.y){
+													menu.tiles[data.view][chunkIndex].tilesets[tilesetIndex].tiles.splice(tileIndex,1);
+													tileIndex--;
+													found=true;
+													if(found){break;}
+												}
+											}
+										}
+										if(found){break;}
+									}
+								}
+								if(found){break;}
+							}
+						}
+
 					}else if(action.action=="delete"){
 
 						views.updateButtons=true;
@@ -1473,6 +1796,39 @@ var view={
 							if(action.objects[i].update!=undefined){this.objects[data.i].update=action.objects[i].update;}
 							this.objects[data.i].alpha=action.objects[i].alpha;
 							if(this.objects[data.i].alpha==undefined){this.objects[data.i].alpha=1;}
+						}
+					}else if(action.action=="deleteTiles"){
+
+						views.updateButtons=true;
+						for(var i=0;i<action.objects.length;i++){
+							var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+							data.x=action.objects[i].x;
+							data.y=action.objects[i].y;
+							data.tX=action.objects[i].tX;
+							data.tY=action.objects[i].tY;
+							data.img=action.objects[i].img;
+							data.view=action.objects[i].view;
+							
+							var ww=view.viewDefaultW;
+							var hh=view.viewDefaultH;
+							
+							var chunkX=Math.floor(data.x/ww)*ww;
+							var chunkY=Math.floor(data.y/hh)*hh;
+							
+							var chunks=menu.tiles[data.view];
+							for(var chunkIndex in chunks){
+								var chunk=chunks[chunkIndex];
+								if(chunk.x==chunkX && chunk.y==chunkY){
+									var tilesets=chunk.tilesets
+									for(var tilesetIndex in tilesets){
+										var tileset=tilesets[tilesetIndex];
+										if(tileset.img==data.img){
+											//add tile
+											menu.tiles[data.view][chunkIndex].tilesets[tilesetIndex].tiles.push([data.x,data.y,data.tX,data.tY]);
+										}
+									}
+								}
+							}
 						}
 					}
 					this.actionsCurr[this.view]--;
@@ -1623,6 +1979,38 @@ var view={
 							if(this.objects[ii].alpha==undefined){this.objects[ii].alpha=1;}
 						}
 
+					}else if(action.action=="createTiles"){
+						views.updateButtons=true;
+						for(var i=0;i<action.objects.length;i++){
+							var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+							data.x=action.objects[i].x;
+							data.y=action.objects[i].y;
+							data.tX=action.objects[i].tX;
+							data.tY=action.objects[i].tY;
+							data.img=action.objects[i].img;
+							data.view=action.objects[i].view;
+							
+							var ww=view.viewDefaultW;
+							var hh=view.viewDefaultH;
+							
+							var chunkX=Math.floor(data.x/ww)*ww;
+							var chunkY=Math.floor(data.y/hh)*hh;
+							
+							var chunks=menu.tiles[data.view];
+							for(var chunkIndex in chunks){
+								var chunk=chunks[chunkIndex];
+								if(chunk.x==chunkX && chunk.y==chunkY){
+									var tilesets=chunk.tilesets
+									for(var tilesetIndex in tilesets){
+										var tileset=tilesets[tilesetIndex];
+										if(tileset.img==data.img){
+											//add tile
+											menu.tiles[data.view][chunkIndex].tilesets[tilesetIndex].tiles.push([data.x,data.y,data.tX,data.tY]);
+										}
+									}
+								}
+							}
+						}
 					}else if(action.action=="delete"){
 						views.updateButtons=true;
 						var index=0;
@@ -1630,7 +2018,53 @@ var view={
 							this.objects.splice(action.objects[i].i+index,1);
 							index--;
 						}
+					}else if(action.action=="deleteTiles"){
+
+						views.updateButtons=true;
+						for(var i=0;i<action.objects.length;i++){
+							var data={x:0,y:0,tX:0,tY:0,img:"",view:this.view}
+							data.x=action.objects[i].x;
+							data.y=action.objects[i].y;
+							data.tX=action.objects[i].tX;
+							data.tY=action.objects[i].tY;
+							data.img=action.objects[i].img;
+							data.view=action.objects[i].view;
+							
+							var ww=view.viewDefaultW;
+							var hh=view.viewDefaultH;
+							
+							var chunkX=Math.floor(data.x/ww)*ww;
+							var chunkY=Math.floor(data.y/hh)*hh;
+							
+							var found=false;
+							
+							var chunks=menu.tiles[data.view];
+							for(var chunkIndex in chunks){
+								var chunk=chunks[chunkIndex];
+								if(chunk.x==chunkX && chunk.y==chunkY){
+									var tilesets=chunk.tilesets
+									for(var tilesetIndex in tilesets){
+										var tileset=tilesets[tilesetIndex];
+										if(tileset.img==data.img){
+											//delete tile
+											for(var tileIndex in tileset.tiles){
+												var tile=tileset.tiles[tileIndex];
+												if(tile[0]==data.x && tile[1]==data.y){
+													menu.tiles[data.view][chunkIndex].tilesets[tilesetIndex].tiles.splice(tileIndex,1);
+													tileIndex--;
+													found=true;
+													if(found){break;}
+												}
+											}
+										}
+										if(found){break;}
+									}
+								}
+								if(found){break;}
+							}
+						}
 					}
+					
 					this.actionsCurr[this.view]++;
 				}
 			}
@@ -1694,6 +2128,16 @@ var view={
 								text="Created ";
 								category="";
 							}
+						}else if(action.action=="deleteTiles"){
+							if(normal){
+								text="Deleted tiles ";
+								category="";
+							}
+						}else if(action.action=="createTiles"){
+							if(normal){
+								text="Created tiles ";
+								category="";
+							}
 						}
 
 						//Get name
@@ -1712,8 +2156,12 @@ var view={
 							}
 						}else if(action.action=="delete"){
 							name=action.objects[0].name;
+						}else if(action.action=="deleteTiles"){
+							name=action.objects[0].img;
 						}else if(action.action=="create"){
 							name=action.objects[0].name;
+						}else if(action.action=="createTiles"){
+							name=action.objects[0].img;
 						}else{
 							name=this.objects[action.objects[0].i].name
 						}
@@ -1759,10 +2207,14 @@ var view={
 
 
 		//Editor
-		if(!app.dark){
-			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"white",0);
+		if(this.bg=="white"){
+			if(!app.dark){
+				jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"white",0);
+			}else{
+				jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"black",0);
+			}
 		}else{
-			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),"black",0);
+			jt.rect(jt.pX(20),jt.pY(15),jt.pX(60),jt.pY(85),this.bg,0);
 		}
 
 		jt.camactive(true);
@@ -1770,8 +2222,91 @@ var view={
 
 
 		//objects
+		if(menu.tLayer<this.objects.length){
+			for(var i=0;i<menu.tLayer;i++){
+				if(this.objects[i].view==this.view || this.objects[i].view==""){
+					this.drawObject(this.objects[i],true);
+				}
+			}
+		}else{
+			for(var i=0;i<this.objects.length;i++){
+				if(this.objects[i].view==this.view || this.objects[i].view==""){
+					this.drawObject(this.objects[i],true);
+				}
+			}
+
+		}
+		
+		//Draw tiles
+		if(menu.tiles[this.view]!=undefined){
+			if(inspector.tileset){
+				jt.alpha(1);
+			}else{
+				jt.alpha(menu.tAlpha);
+			}
+			
+			var ww=view.viewDefaultW;
+			var hh=view.viewDefaultH;
+			
+			//Only draw included chunks
+			var chunkX=Math.floor(jt.cam().x/ww)*ww;
+			var chunkY=Math.floor(jt.cam().y/hh)*hh;
+			
+			var chunkX2=Math.ceil((jt.cam().x+jt.cam().w)/ww)*ww;
+			var chunkY2=Math.ceil((jt.cam().y+jt.cam().h)/hh)*hh;
+			
+			var chunkW=(chunkX2-chunkX)/ww;
+			var chunkH=(chunkY2-chunkY)/hh;
+			
+			var chunkXs=[];
+			var chunkYs=[];
+			
+			for(var yy=0;yy<chunkH;yy++){
+				for(var xx=0;xx<chunkW;xx++){
+					chunkXs.push(chunkX+(xx*ww));
+					chunkYs.push(chunkY+(yy*hh));
+				}
+			}
+			
+			//Draw all chunks for now
+			for(var chunkIndex in menu.tiles[this.view]){
+				if(chunkXs.indexOf(menu.tiles[this.view][chunkIndex].x)!=-1 && chunkYs.indexOf(menu.tiles[this.view][chunkIndex].y)!=-1){
+					var tilesets=menu.tiles[this.view][chunkIndex].tilesets;
+					for(var tilesetIndex in tilesets){
+						//Tileset individual params
+						var tileset=tilesets[tilesetIndex];
+						var img=tileset.img;
+						var unit=tileset.unit;
+						
+						//Tileset 
+						var tileW=menu.tilesets[img].tileW
+						var tileH=menu.tilesets[img].tileH
+						var tileOffX=menu.tilesets[img].tileOffX
+						var tileOffY=menu.tilesets[img].tileOffY
+						
+						//Draw all tiles
+						var tiles=tileset.tiles;
+						for(var tileIndex in tiles){
+							var tile=tiles[tileIndex];
+							jt.image(img,tile[0],tile[1],unit,unit,0,tile[2]*tileW+tileOffX,tile[3]*tileH+tileOffY,tileW,tileH);
+						}
+					}
+				}
+			}
+			
+			jt.alpha(1);
+		}
+		
+		if(menu.tLayer<this.objects.length){
+			for(var i=menu.tLayer;i<this.objects.length;i++){
+				if(this.objects[i].view==this.view || this.objects[i].view==""){
+					this.drawObject(this.objects[i],true);
+				}
+			}
+		}
+		
 		for(var i=0;i<this.objects.length;i++){
-			if(this.objects[i].view==this.view || this.objects[i].view==""){
+			if(this.objects[i].last && (this.objects[i].view==this.view || this.objects[i].view=="")){
 				this.drawObject(this.objects[i],true);
 			}
 		}
@@ -1889,8 +2424,8 @@ var view={
 				x=jt.floor(x/menu.gridUnit)*menu.gridUnit+menu.gridX;
 				y=jt.floor(y/menu.gridUnit)*menu.gridUnit+menu.gridY;
 			}
-			var sX=inspector.tileX*inspector.tileW;
-			var sY=inspector.tileY*inspector.tileH;
+			var sX=inspector.tileX*inspector.tileW+inspector.tileOffX;
+			var sY=inspector.tileY*inspector.tileH+inspector.tileOffY;
 			var sW=inspector.tileW;
 			var sH=inspector.tileH;
 			
@@ -1898,12 +2433,13 @@ var view={
 			for(var yy=0;yy<inspector.tileSize;yy++){
 				for(var xx=0;xx<inspector.tileSize;xx++){
 					jt.image(img,x+(xx*menu.gridUnit),y+(yy*menu.gridUnit),menu.gridUnit,menu.gridUnit,0,sX,sY,sW,sH);
-					jt.rectB(x+(xx*menu.gridUnit),y+(yy*menu.gridUnit),menu.gridUnit,menu.gridUnit,"black",0,1)
+					jt.rectB(x+(xx*menu.grridUnit),y+(yy*menu.gridUnit),menu.gridUnit,menu.gridUnit,"black",0,1)
 				}
 			}
 			
 			jt.alpha(1);
 		}
+		
 
 
 		//Editor middle
@@ -1984,134 +2520,143 @@ var view={
 		var r=o.r;
 		var obj={x:o.x,y:o.y,w:o.w,h:o.h,attr:o.attr,selected:o.selected,alpha:o.alpha};
 
-		//change alpha
-		var changeAlpha=false;
-		if(obj.alpha!=1){
-			changeAlpha=true;
-			jt.alpha(o.alpha);
-		}
+		var draw=true;
+		if(obj.x+obj.w<jt.cam().x-jt.cam().w){draw=false};
+		if(obj.x>jt.cam().x+jt.cam().w*2){draw=false};
+		if(obj.y+obj.h<jt.cam().y-jt.cam().h){draw=false};
+		if(obj.y>jt.cam().y+jt.cam().h*2){draw=false};
+		 
+		if(draw){
 
-		if(obj.attr!=undefined){
-			if(obj.attr.text!=undefined){
-				var t=obj.attr.text;
-				var fS=app.fontSize;
-				var font="Consolas";
-				var align="left";
-				var alwaysShow=true
-				var offset=0;
+			//change alpha
+			var changeAlpha=false;
+			if(obj.alpha!=1){
+				changeAlpha=true;
+				jt.alpha(o.alpha);
+			}
 
-				if(obj.attr.size!=undefined){fS=obj.attr.size}
-				if(obj.attr.font!=undefined){font=obj.attr.font}
-				if(obj.attr.align!=undefined){align=obj.attr.align}
-				if(obj.attr.alwaysShow!=undefined){alwaysShow=obj.attr.alwaysShow}
+			if(obj.attr!=undefined){
+				if(obj.attr.text!=undefined){
+					var t=obj.attr.text;
+					var fS=app.fontSize;
+					var font="Consolas";
+					var align="left";
+					var alwaysShow=true
+					var offset=0;
 
-				var ratioCam=((jt.w()+jt.h())/2)/((jt.cam().w+jt.cam().h)/2);
-				//if(o.cam==true){
-				fS*=ratioCam;
-				//}
+					if(obj.attr.size!=undefined){fS=obj.attr.size}
+					if(obj.attr.font!=undefined){font=obj.attr.font}
+					if(obj.attr.align!=undefined){align=obj.attr.align}
+					if(obj.attr.alwaysShow!=undefined){alwaysShow=obj.attr.alwaysShow}
 
-				if(align=="center"){
-					offset=obj.w/2;
-				}
+					var ratioCam=((jt.w()+jt.h())/2)/((jt.cam().w+jt.cam().h)/2);
+					//if(o.cam==true){
+					fS*=ratioCam;
+					//}
 
-				if(align=="right"){
-					offset=obj.w;
-				}
-				alwaysShow=true
+					if(align=="center"){
+						offset=obj.w/2;
+					}
 
-				jt.font(font,fS);
-				var w=jt.textW(t)/ratioCam;
-				var w1=jt.textW("a")/ratioCam;
-				var h=jt.textH(t)/ratioCam;
-				var maxChars=Math.ceil(obj.w/w1)
+					if(align=="right"){
+						offset=obj.w;
+					}
+					alwaysShow=true
 
-				if((w<=obj.w && h<=obj.h) || alwaysShow){
-					jt.text(t,obj.x+offset,obj.y,c,align,fS,r,maxChars,fS/ratioCam);
-				}else{
-					if(h>obj.h){
-						//too small
+					jt.font(font,fS);
+					var w=jt.textW(t)/ratioCam;
+					var w1=jt.textW("a")/ratioCam;
+					var h=jt.textH(t)/ratioCam;
+					var maxChars=Math.ceil(obj.w/w1)
+
+					if((w<=obj.w && h<=obj.h) || alwaysShow){
+						jt.text(t,obj.x+offset,obj.y,c,align,fS,r,maxChars,fS/ratioCam);
 					}else{
-						if(w>obj.w){
-							if(w1>obj.w){
-								//too small
-							}else{
-								//line breaks
-								var maxLen=1;
-								for(var j=1;j<t.length;j++){
-									if(w1*j>obj.w){
-										break;
-									}else{
-										maxLen=j;
+						if(h>obj.h){
+							//too small
+						}else{
+							if(w>obj.w){
+								if(w1>obj.w){
+									//too small
+								}else{
+									//line breaks
+									var maxLen=1;
+									for(var j=1;j<t.length;j++){
+										if(w1*j>obj.w){
+											break;
+										}else{
+											maxLen=j;
+										}
 									}
-								}
-								var numLines=Math.ceil(t.length/maxLen);
-								var maxLines=1;
-								for(var j=1;j<=numLines;j++){
-									if(h*j>obj.h){
-										break;
-									}else{
-										maxLines=j;
+									var numLines=Math.ceil(t.length/maxLen);
+									var maxLines=1;
+									for(var j=1;j<=numLines;j++){
+										if(h*j>obj.h){
+											break;
+										}else{
+											maxLines=j;
+										}
 									}
-								}
-								//draw all lines
-								for(var j=0;j<maxLines;j++){
-									var str=t.substr(j*maxLen,maxLen);
-									jt.text(str,obj.x+offset,obj.y+(h*j),c,align,fS,r);
+									//draw all lines
+									for(var j=0;j<maxLines;j++){
+										var str=t.substr(j*maxLen,maxLen);
+										jt.text(str,obj.x+offset,obj.y+(h*j),c,align,fS,r);
+									}
 								}
 							}
 						}
 					}
-				}
 
 
-			}else if(obj.attr.img!=undefined){
-				if(jt.assets.images[obj.attr.img]!=undefined){
-					jt.image(obj.attr.img,obj.x,obj.y,obj.w,obj.h,r,obj.attr.sX,obj.attr.sY,obj.attr.sW,obj.attr.sH);
-				}else{
-					jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
+				}else if(obj.attr.img!=undefined){
+					if(jt.assets.images[obj.attr.img]!=undefined){
+						jt.image(obj.attr.img,obj.x,obj.y,obj.w,obj.h,r,obj.attr.sX,obj.attr.sY,obj.attr.sW,obj.attr.sH);
+					}else{
+						jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
+					}
+				}else if(obj.attr.anim!=undefined){
+					if(jt.assets.anims[obj.attr.anim]!=undefined){
+						jt.anim(obj.attr.anim,obj.x,obj.y,obj.w,obj.h,r);
+					}else{
+						jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
+					}
+				}else if(obj.attr.shape!=undefined){
+					if(obj.attr.shape=="circle"){
+						var biggest=obj.w;
+						if(obj.h>obj.w){
+							biggest=obj.h;
+						}
+						jt.circle(obj.x,obj.y,biggest,c)
+					}else if(obj.attr.shape=="ellipse"){
+						jt.ellipse(obj.x,obj.y,obj.w,obj.h,c,r)
+					}else if(obj.attr.shape=="line"){
+						var x=obj.x;
+						var y=obj.y;
+						var w=obj.x+obj.w;
+						var h=obj.y+obj.h;
+						if(obj.attr.dirX==-1){
+							x=obj.x+obj.w
+							w=obj.x;
+						}
+						if(obj.attr.dirY==-1){
+							y=obj.y+obj.h
+							h=obj.y;
+						}
+						jt.line(x,y,w,h,obj.attr.lineW,c,r)
+					}
 				}
-			}else if(obj.attr.anim!=undefined){
-				if(jt.assets.anims[obj.attr.anim]!=undefined){
-					jt.anim(obj.attr.anim,obj.x,obj.y,obj.w,obj.h,r);
-				}else{
-					jt.rect(obj.x,obj.y,obj.w,obj.h,"black",r);
+			}else{
+				jt.rect(obj.x,obj.y,obj.w,obj.h,c,r);
+				if(r%360!=0 && this.showRot){
+					jt.rectB(obj.x,obj.y,obj.w,obj.h,c,0,2)
 				}
-			}else if(obj.attr.shape!=undefined){
-				if(obj.attr.shape=="circle"){
-                    var biggest=obj.w;
-                    if(obj.h>obj.w){
-                        biggest=obj.h;
-                    }
-                    jt.circle(obj.x,obj.y,biggest,c)
-                }else if(obj.attr.shape=="ellipse"){
-                    jt.ellipse(obj.x,obj.y,obj.w,obj.h,c,r)
-                }else if(obj.attr.shape=="line"){
-                    var x=obj.x;
-                    var y=obj.y;
-                    var w=obj.x+obj.w;
-                    var h=obj.y+obj.h;
-                    if(obj.attr.dirX==-1){
-                        x=obj.x+obj.w
-                        w=obj.x;
-                    }
-                    if(obj.attr.dirY==-1){
-                        y=obj.y+obj.h
-                        h=obj.y;
-                    }
-                    jt.line(x,y,w,h,obj.attr.lineW,c,r)
-                }
 			}
-		}else{
-			jt.rect(obj.x,obj.y,obj.w,obj.h,c,r);
-            if(r%360!=0 && this.showRot){
-                jt.rectB(obj.x,obj.y,obj.w,obj.h,c,0,2)
-            }
-		}
-		if(changeAlpha){
-			jt.alpha(1)
-		}
-		if(obj.selected && outline){
-			jt.rectB(obj.x,obj.y,obj.w,obj.h,[0,0,0,0.75],r,2);
+			if(changeAlpha){
+				jt.alpha(1)
+			}
+			if(obj.selected && outline){
+				jt.rectB(obj.x,obj.y,obj.w,obj.h,[0,0,0,0.75],r,2);
+			}
 		}
 	},
 	resetView:function(name){
