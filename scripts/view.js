@@ -2316,14 +2316,69 @@ var view={
 
 			var a=menu.gridAlpha;
 			var c=[0,0,0,a];
-			var w=0.25;
+			var w=0.5;
 			if(app.dark){c=[255,255,255,a];w=0.5}
-			for(var y=-menu.gridUnit;y<this.viewDefaultH+menu.gridUnit+1;y+=menu.gridUnit){
-				jt.rect(0+menu.gridX,y+menu.gridY,this.viewDefaultW,w,c);
-			}
+			//only show if cam is less than ratio bigger
+			var maxRatio=200;
+			if(jt.cam().h<menu.gridUnit*maxRatio){
+				var viewX=jt.camToX(jt.pX(20));
+				var viewY=jt.camToY(jt.pY(15));
+				
+				var startX=viewX-viewX%menu.gridUnit;
+				var startY=viewY-viewY%menu.gridUnit;
+				
+				var endX=viewX+jt.cam().w;
+				var endY=viewY+jt.cam().h;
+				
+				var i=0;
+				
+				
+				for(var y=startY;y<endY;y+=menu.gridUnit){
+					jt.rect(0+menu.gridX+viewX,y+menu.gridY,jt.cam().w,w,c);
+					i++
+				}
 
-			for(var x=-menu.gridUnit;x<this.viewDefaultW+menu.gridUnit+1;x+=menu.gridUnit){
-				jt.rect(x+menu.gridX,0+menu.gridY,w,this.viewDefaultH,c);
+				for(var x=startX;x<endX;x+=menu.gridUnit){
+					jt.rect(x+menu.gridX,0+menu.gridY+viewY,w,jt.cam().h,c);
+					i++
+				}
+			}
+		}
+		
+		if(menu.showRooms){
+			var a=menu.gridAlpha;
+			var c=[0,0,0,a];
+			var w=0.5;
+			if(app.dark){c=[255,255,255,a];w=0.5}
+			//only show if cam is less than ratio bigger
+			var maxRatio=50;
+			if(jt.cam().h<this.viewDefaultH*maxRatio){
+				var viewX=jt.camToX(jt.pX(20));
+				var viewY=jt.camToY(jt.pY(15));
+				
+				var startX=viewX-(viewX%this.viewDefaultW)-this.viewDefaultW;
+				var startY=viewY-(viewY%this.viewDefaultH)-this.viewDefaultH;
+				
+				var endX=startX+jt.cam().w+this.viewDefaultW;
+				var endY=startY+jt.cam().h+this.viewDefaultH;
+				
+				var i=0;
+				
+				jt.baseline("top");
+				jt.font("Consolas",app.fontSize*ratioCam);
+				
+				
+				for(var y=startY;y<endY;y+=this.viewDefaultH){
+					let textY=jt.floor(y/this.viewDefaultH);
+					for(var x=startX;x<endX;x+=this.viewDefaultW){
+						jt.rectB(x,y,this.viewDefaultW,this.viewDefaultH,c,0,w);
+						
+						let textX=jt.floor(x/this.viewDefaultW);
+						
+						
+						jt.text(textX+" "+textY,x+5*ratioCam,y+5*ratioCam,"grey","left");
+					}
+				}
 			}
 		}
 
@@ -2445,12 +2500,17 @@ var view={
 		//Editor middle
 		jt.font("Consolas",app.fontSize);
 		//jt.text("View",jt.pX(20),jt.pY(17),"black","left");
-		jt.baseline("bottom");
-		jt.camactive(true);
-		jt.font("Consolas",app.fontSize*ratioCam);
-		jt.rectB(0,0,this.viewDefaultW,this.viewDefaultH,"grey",0,1);
+		if(!menu.showRooms){
+			jt.baseline("bottom");
+			jt.camactive(true);
+			jt.font("Consolas",app.fontSize*ratioCam);
+			
 
-		jt.text(this.view,0,0,"grey","left");
+			jt.text(this.view,0,0,"grey","left");
+		}
+		
+		jt.rectB(0,0,this.viewDefaultW,this.viewDefaultH,"grey",0,1);
+		
 
 
 
