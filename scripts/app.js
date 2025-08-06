@@ -84,11 +84,11 @@ function openFile(e){
 }
 
 var app={
-	version:"2.4 (JT library 22)",
-	changes:["-JT library 22",
-			 "-Optimized objects render",
+	version:"2.4.5 (JT library 22)",
+	changes:["-Optimized objects render",
 			 "-Tileset is separated",
-			 "-Deletes operations"],
+			 "-Deletes operations",
+			 "-Better grid and 'Rooms' (new)"],
 	w:0,
 	h:0,
 	fps:60,
