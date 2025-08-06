@@ -35,10 +35,11 @@ var menu={
 	uploadAnimsHover:false,
 	repeat:false,
 
+	showRooms:false,
 	showGrid:false,
 	snapGrid:true,
 	gridUnit:10,
-	gridAlpha:1,
+	gridAlpha:0.5,
 	gridX:0,
 	gridY:0,
 
@@ -184,8 +185,8 @@ var menu={
 		this.fields[7].text=this.colors[this.colorCurr][2].toString();
 		
 		//GRID
-		this.fields.push(new Field(jt.pX(59.75),jt.pY(7.5),jt.pX(2),jt.pY(2),"gridX","Create"));
-		this.fields.push(new Field(jt.pX(59.75),jt.pY(10),jt.pX(2),jt.pY(2),"gridY","Create"));
+		this.fields.push(new Field(jt.pX(59.5),jt.pY(7.5),jt.pX(2),jt.pY(2),"gridX","Create"));
+		this.fields.push(new Field(jt.pX(59.5),jt.pY(10),jt.pX(2),jt.pY(2),"gridY","Create"));
 		this.fields[8].text=this.gridX.toString();
 		this.fields[9].text=this.gridY.toString();
 		
@@ -195,7 +196,7 @@ var menu={
 		this.fields[11].text=this.gridAlpha.toString();
 		
 		
-		this.fields.push(new Field(jt.pX(59.75),jt.pY(12.5),jt.pX(2),jt.pY(2),"tLayer","Create"));
+		this.fields.push(new Field(jt.pX(59.5),jt.pY(12.5),jt.pX(2),jt.pY(2),"tLayer","Create"));
 		this.fields.push(new Field(jt.pX(65),jt.pY(12.5),jt.pX(2),jt.pY(2),"tAlpha","Create"));
 		this.fields[12].text=this.tLayer.toString();
 		this.fields[13].text=this.tAlpha.toString();
@@ -203,7 +204,9 @@ var menu={
 		//Volume
 		this.fields.push(new Field(jt.pX(31.5),jt.pY(9.5),jt.pX(2.5),jt.pY(2),"uploadVolume","Create"));
 
-		this.buttons.push(new Button(jt.pX(59.5),jt.pY(5),jt.pX(5),jt.pY(2),"showGrid",true,"show Grid","Create","g","space"));
+		this.buttons.push(new Button(jt.pX(59.5),jt.pY(5),jt.pX(2.5),jt.pY(2),"showRooms",true,"Rooms","Create","v","space"));
+		this.buttons.push(new Button(jt.pX(62.5),jt.pY(5),jt.pX(2),jt.pY(2),"showGrid",true,"Grid","Create","g","space"));
+		
 		this.buttons.push(new Button(jt.pX(65),jt.pY(5),jt.pX(5),jt.pY(2),"snapGrid",true,"Snapping","Create","s","space"));
 		this.buttons[this.buttons.length-1].selected=true;
 		//this.buttons.push(new Button(jt.pX(63.5),jt.pY(8),jt.pX(1.5),jt.pY(2),"unitMinus",false,"-1","Create","1","u"));
@@ -1178,6 +1181,9 @@ var menu={
                                     if(this.buttons[i].action=="showActions"){
 										view.showActions=false;
 									}
+									if(this.buttons[i].action=="showRooms"){
+										this.showRooms=false;
+									}
 									if(this.buttons[i].action=="showGrid"){
 										this.showGrid=false;
 									}
@@ -1693,6 +1699,8 @@ var menu={
 							view.resetView(views.views[num]);
 
 						//GRID
+						}else if(this.buttons[i].action=="showRooms"){
+							this.showRooms=true;
 						}else if(this.buttons[i].action=="showGrid"){
 							this.showGrid=true;
 						}else if(this.buttons[i].action=="snapGrid"){
