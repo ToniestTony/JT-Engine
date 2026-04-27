@@ -12,13 +12,15 @@ The documentation of every functions of the JT Library and the JT Engine can be 
 
 ## Examples
 
+-[Here](https://ynotplay.ca/jeu.html?id=puzzleCollection) is a 3 puzzles in 1 game.
+
 -[Here](http://ynotplay.ca/jeu.html?id=flamehead) is a small game that I first made to test the engine.
 
--[Here](https://todojt.netlify.app/) is a small todo list.
-
--[Here](https://music-listen-lite.netlify.app/) is a music listen quiz (takes a bit to load because of the music)
-
 -[Here](http://ynotplay.ca/jeu.html?id=outOfControl) is a big warioware style game (takes a bit to load because of all the assets)
+
+-[Here](https://ynotplay.ca/jeu.html?id=superMetrony) is a remake of Super Metroid in my engine (takes a bit to load because of all the assets)
+
+-[Here](https://todojt.netlify.app/) is a small todo list.
 
 These are only a couple of games/apps I've made to show you the potential of the JT Engine.
 
